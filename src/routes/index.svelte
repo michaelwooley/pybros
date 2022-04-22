@@ -3,53 +3,12 @@
 </script>
 
 <script lang="ts">
-	import { onMount } from 'svelte';
-
-	let result: string;
-	let worker: Worker;
-	onMount(async () => {
-		const MyWorker = await (await import('$lib/wasmWorker/worker?worker')).default;
-
-		worker = new MyWorker();
-		worker.onmessage = function (event) {
-			console.log(event);
-			console.log(event.data);
-			result = event.data;
-		};
-
-		const mod = await import('$lib/wasm/pkg/wasm');
-		console.log(mod);
-		await mod.default();
-		console.log(mod.fibonacci(30));
-	});
-
-	const handleFib = (num: number) => {
-		worker.postMessage(num);
-	};
+	import PythonExecDemo from '$containers/PythonExecDemo.svelte';
 </script>
 
-<svelte:head>
-	<title>Home</title>
-</svelte:head>
-
 <section class="section">
-	<h1>
-		<div class="welcome">
-			<picture>
-				<source srcset="svelte-welcome.webp" type="image/webp" />
-				<img src="svelte-welcome.png" alt="Welcome" />
-			</picture>
-		</div>
-
-		to your new<br />SvelteKit app
-	</h1>
-
 	<div class="container">
-		<!-- <input type="number" />	 -->
-		<button class="button" on:click={() => handleFib(4)}>Run it</button>
-
-		{#if result}
-			<div>Result is: {result}</div>
-		{/if}
+		<h1 class="title is-1">pysvelte</h1>
+		<PythonExecDemo />
 	</div>
 </section>

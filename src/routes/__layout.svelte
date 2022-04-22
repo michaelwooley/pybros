@@ -1,16 +1,31 @@
 <script lang="ts">
-	import Header from '$lib/header/Header.svelte';
+	import { PROJECT_NAME } from '$lib/constants';
+
+	// import Header from '$lib/header/Header.svelte';
 	import '../app.scss';
 </script>
 
+<svelte:head>
+	<title>{PROJECT_NAME}</title>
+</svelte:head>
+
 <header />
 
-<main>
+<main id="svelte">
 	<slot />
 </main>
 
-<footer>
-	<p>visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to learn SvelteKit</p>
+<footer class="footer">
+	<div class="container">
+		<div class="content">
+			<p>
+				pysvelte | By Michael Wooley | <a
+					href="https://github.com/michaelwooley/pysvelte"
+					target="_blank">GitHub</a
+				>
+			</p>
+		</div>
+	</div>
 </footer>
 
 <style>
@@ -20,12 +35,12 @@
 		flex-direction: column;
 		padding: 1rem;
 		width: 100%;
-		max-width: 1024px;
+		/* max-width: 1024px; */
 		margin: 0 auto;
 		box-sizing: border-box;
 	}
 
-	footer {
+	/* footer {
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
@@ -41,5 +56,5 @@
 		footer {
 			padding: 40px 0;
 		}
-	}
+	} */
 </style>

@@ -1,3 +1,15 @@
 {
-	"rust-analyzer.workspace.symbol.search.scope": "workspace"
+	"rust-analyzer.workspace.symbol.search.scope": "workspace",
+	"svelte.enable-ts-plugin": true,
+	"svelte_require.semi": true,
+	"eslint.probe": [
+		"javascript",
+		"javascriptreact",
+		"typescript",
+		"typescriptreact",
+		"html",
+		"vue",
+		"markdown",
+		"svelte"
+	]
 }
