@@ -1,5 +1,9 @@
 # pysvelte
 
+_Demo: svelte kit + wasm (rust) + web workers_
+
+
+# Development
 
 ## Build wasm
 

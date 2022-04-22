@@ -15,7 +15,6 @@
 			console.log(event);
 			console.log(event.data);
 			result = event.data;
-			// console.log('Got: ' + event.data + '\n');
 		};
 
 		const mod = await import('$lib/wasm/pkg/wasm');
@@ -27,22 +26,6 @@
 	const handleFib = (num: number) => {
 		worker.postMessage(num);
 	};
-	// worker.onmessage = function (event) {
-	// 	console.log(event);
-	// 	result = event.data;
-	// 	// console.log('Got: ' + event.data + '\n');
-	// };
-
-	// import { onMount } from 'svelte';
-
-	// onMount(async () => {
-	// const mod = await import('$lib/wasm/pkg/wasm');
-	// console.log(mod);
-
-	// 	await mod.default();
-
-	// 	mod.greet('is this working?');
-	// });
 </script>
 
 <svelte:head>
