@@ -9,7 +9,7 @@
 			<p>
 				<a href={routes.BASE}> {PROJECT_EMOJI} <strong>{PROJECT_NAME}</strong> </a> | By Michael
 				Wooley |
-				<a href="https://github.com/michaelwooley/pysvelte" target="_blank">GitHub</a>
+				<a href={PROJECT_REPO} target="_blank">GitHub</a>
 			</p>
 		</div>
 	</div>

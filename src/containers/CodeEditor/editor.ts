@@ -80,6 +80,7 @@ export const initEditorTracking = (
 
 	// We persist the document content across sessions
 	const indexeddbProvider = new IndexeddbPersistence(key, ydoc);
+	console.debug(indexeddbProvider);
 
 	const monacoBinding = new MonacoBinding(
 		type,
