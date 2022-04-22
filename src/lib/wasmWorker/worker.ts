@@ -2,10 +2,18 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
 
+import init, { greet } from '$lib/wasm/pkg/wasm';
+init().then(() => {
+	// greet('WebAssembly');
+	// console.log('woerk');
+	self.postMessage('Ready to go!');
+	// greet('WebAssembly');
+});
+
 self.onmessage = function (e) {
 	const userNum = Number(e.data);
 	const b = fibonacci(userNum);
-	self.postMessage(b);
+	self.postMessage({ b, route: 'fib' });
 };
 
 function fibonacci(num: number): number {

@@ -13,6 +13,7 @@
 		worker = new MyWorker();
 		worker.onmessage = function (event) {
 			console.log(event);
+			console.log(event.data);
 			result = event.data;
 			// console.log('Got: ' + event.data + '\n');
 		};
