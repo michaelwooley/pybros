@@ -16,11 +16,10 @@
 
 @import 'bulma/sass/layout/_all';
 
-
 :root {
 	font-family: Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
 		Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-	--font-mono:  monospace;
+	--font-mono: monospace;
 	--pure-white: #ffffff;
 	--primary-color: #b9c6d2;
 	--secondary-color: #d0dde9;
@@ -62,7 +61,7 @@ body::before {
 	opacity: 0.05;
 }
 
-#svelte {
+main#svelte {
 	min-height: 100vh;
 	display: flex;
 	flex-direction: column;
