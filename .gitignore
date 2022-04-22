@@ -12,3 +12,4 @@ node_modules
 # **/rustPython/target
 **/target
 /*/target
+/scratch

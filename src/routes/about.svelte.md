@@ -1,4 +1,4 @@
-<script context="module">
+<!-- <script context="module">
 	// import { browser, dev } from '$app/env';
 	import { PROJECT_NAME } from '$lib/constants';
 
@@ -26,4 +26,25 @@
 
 		<p>TODO ....</p>
 	</div>
-</section>
+</section> -->
+
+
+title: About
+
+---
+
+This is the about page.
+
+
+
+# Acknowledgements
+
+This is really just a glue job. These people did most of the work:
+
+- [Svelte/Svelte kit](kit.svelte.dev)
+- [RustPython](https://github.com/RustPython/RustPython)
+- [rustwasm/wasm-pack](https://github.com/rustwasm/wasm-pack)
+- [vite](https://vitejs.dev/)
+- [YJS](https://docs.yjs.dev)
+- [Monaco editor](https://microsoft.github.io/monaco-editor)
+- [Bulma](https://bulma.io)

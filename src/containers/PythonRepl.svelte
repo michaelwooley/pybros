@@ -1,6 +1,6 @@
 <script lang="ts">
 	import PythonReplViewer from '$components/PythonReplViewer.svelte';
-	import CodeEditor from '$containers/CodeEditor.svelte';
+	import CodeEditor from '$containers/CodeEditor/CodeEditor.svelte';
 	import type { TPythonCommand, TPythonSession } from '$lib/pythonSession';
 	import { afterUpdate, onMount } from 'svelte';
 
