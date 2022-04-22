@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from 'svelte';
 	import type monaco from 'monaco-editor';
-	import { initEditor } from './editor';
+	import { initEditor, initEditorTracking } from './editor';
+	import { YJS_INDEXEDDB_EDITOR_KEY } from '$lib/constants';
 
 	const dispatch = createEventDispatcher<{ run: string }>();
 
@@ -19,6 +20,7 @@
 			throw new Error('Div not found..');
 		}
 		editor = await initEditor(divEl, handleRunCmd);
+		initEditorTracking(editor, YJS_INDEXEDDB_EDITOR_KEY);
 
 		return () => {
 			editor.dispose();
