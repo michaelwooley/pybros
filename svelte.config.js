@@ -2,6 +2,7 @@ import { mdsvex } from 'mdsvex';
 import mdsvexConfig from './mdsvex.config.js';
 import adapter from '@sveltejs/adapter-static';
 import preprocess from 'svelte-preprocess';
+import { resolve } from 'path';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -27,6 +28,14 @@ const config = {
 		},
 
 		vite: {
+			resolve: {
+				alias: {
+					$components: resolve('./src/components'),
+					$containers: resolve('./src/containers')
+					// 'node-fetch': 'isomorphic-fetch'
+				}
+			},
+
 			css: {
 				preprocessorOptions: {
 					scss: {
