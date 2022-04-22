@@ -45,7 +45,11 @@
 			language: 'python',
 			minimap: { enabled: false },
 			theme: 'vs-dark',
-			formatOnPaste: true
+			formatOnPaste: true,
+			scrollbar: {
+				vertical: 'auto',
+				verticalScrollbarSize: 5
+			}
 		});
 
 		// REFERENCE https://github.com/microsoft/monaco-editor/blob/d987b87d6dd24d597991a2bd9022887b12b32cd5/website/playground/new-samples/interacting-with-the-editor/adding-an-action-to-an-editor-instance/sample.js#L20
@@ -78,7 +82,7 @@
 
 <style lang="scss">
 	.editor {
-		// width: 100%;
+		width: 100%;
 		height: 100%;
 	}
 </style>
