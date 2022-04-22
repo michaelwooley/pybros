@@ -3,15 +3,31 @@
 </script>
 
 <script lang="ts">
-	import { PROJECT_NAME } from '$lib/constants';
-
 	import { onMount } from 'svelte';
 
 	// let result: string;
 	// let worker: Worker;
-	let pyEval: (source: string, options?: object) => any;
-	let code: string = '';
+	// let pyEval: (source: string, options?: object) => any; 	// eslint-disable
+	let pyExec: (source: string, options?: object) => void;
+	let code = '';
 	let results: string[] = [];
+
+	const runPyEval = (s: string): void => {
+		if (!pyExec) {
+			alert('Not loaded!');
+			return;
+		}
+
+		pyExec(s, {
+			stdout: (out: string): void => {
+				console.log(`Got stdout: ${out} (JSON/escaped: ${JSON.stringify(out)})`);
+
+				results = results.concat([out]);
+			}
+		});
+		console.log('This only runs once the code is done executing.');
+	};
+
 	onMount(async () => {
 		// const MyWorker = await (await import('$lib/wasmWorker/worker?worker')).default;
 
@@ -28,54 +44,31 @@
 		// console.log(mod.fibonacci(30));
 
 		const mod = await import('$lib/rustPython/pkg/rustpython_wasm');
+		performance.mark('start-load');
 		await mod.default();
+		let m = performance.measure('load rustpython', 'start-load');
+
+		console.log('Measure: ', m.toJSON());
+
+		pyExec = mod.pyExec; // mod.pyEval // Nope: truly a single-line req
+
 		console.log('Loaded', new Date());
-		mod.pyEval('print(1+1)', {
-			stdout: (out: string): void => {
-				console.log(`Got stdout: ${out} (JSON/escaped: ${JSON.stringify(out)})`);
+		performance.mark('start-first-run');
+		runPyEval('print(1+1)');
+		m = performance.measure('load rustpython', 'start-first-run');
 
-				results = results.concat([out]);
-				console.log('done 1', new Date(), performance.now());
-			}
-		});
+		console.log(m.toJSON());
+		performance.mark('start-second-run');
+		runPyEval('print(2+2)');
+		m = performance.measure('Second run', 'start-second-run');
 
-		mod.pyEval('print(2+2)', {
-			stdout: (out: string): void => {
-				console.log(`Got stdout: ${out} (JSON/escaped: ${JSON.stringify(out)})`);
-
-				results = results.concat([out]);
-				console.log('done 1', new Date(), performance.now());
-			}
-		});
-
-		pyEval = mod.pyExec; // mod.pyEval // Nope: truly a single-line req
-		// mod.pyExec()
+		console.log(m.toJSON());
 	});
 
 	// const handleFib = (num: number) => {
 	// 	worker.postMessage(num);
 	// };
-
-	const runPyEval = (code: string): void => {
-		if (!pyEval) {
-			alert('Not loaded!');
-			return;
-		}
-
-		pyEval(code, {
-			stdout: (out: string): void => {
-				console.log(`Got stdout: ${out} (JSON/escaped: ${JSON.stringify(out)})`);
-
-				results = results.concat([out]);
-			}
-		});
-		console.log('belo');
-	};
 </script>
-
-<svelte:head>
-	<title>{PROJECT_NAME}</title>
-</svelte:head>
 
 <section class="section">
 	<div class="container">
@@ -100,7 +93,7 @@
 				</div>
 			</div>
 			<div class="control">
-				<button class="button" disabled={!pyEval}>🏃 Run code</button>
+				<button class="button" disabled={!pyExec}>🏃 Run code</button>
 			</div>
 		</form>
 		<hr />
