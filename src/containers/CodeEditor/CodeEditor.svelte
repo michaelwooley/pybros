@@ -2,7 +2,7 @@
 	import { createEventDispatcher, onMount } from 'svelte';
 	import type monaco from 'monaco-editor';
 	import { initEditor, initEditorTracking } from './editor';
-	import { YJS_INDEXEDDB_EDITOR_KEY } from '$lib/constants';
+	import { YJS_INDEXEDDB_EDITOR_KEY, YJS_WEBRTC_COMMON_ROOM } from '$lib/constants';
 
 	const dispatch = createEventDispatcher<{ run: string }>();
 
@@ -20,7 +20,7 @@
 			throw new Error('Div not found..');
 		}
 		editor = await initEditor(divEl, handleRunCmd);
-		initEditorTracking(editor, YJS_INDEXEDDB_EDITOR_KEY);
+		initEditorTracking(editor, YJS_INDEXEDDB_EDITOR_KEY, YJS_WEBRTC_COMMON_ROOM);
 
 		return () => {
 			editor.dispose();

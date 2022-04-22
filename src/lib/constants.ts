@@ -15,3 +15,6 @@ export const YJS_WEBRTC_SIGNALLING_SERVERS = dev
 			'wss://y-webrtc-signaling-eu.herokuapp.com',
 			'wss://y-webrtc-signaling-us.herokuapp.com'
 	  ];
+
+// TODO #21 Create and handle multiple webrtc rooms. (One per meet.)
+export const YJS_WEBRTC_COMMON_ROOM = 'pysvelte-room';

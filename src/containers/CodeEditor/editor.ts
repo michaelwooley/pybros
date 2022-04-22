@@ -9,8 +9,10 @@ import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
 import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
 import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
 import * as Y from 'yjs';
-import { MonacoBinding } from 'y-monaco';
+import type { MonacoBinding } from 'y-monaco';
 import { IndexeddbPersistence } from 'y-indexeddb';
+import { WebrtcProvider } from 'y-webrtc';
+import { YJS_WEBRTC_SIGNALLING_SERVERS } from '$lib/constants';
 
 export const initEditor = async (
 	div: HTMLDivElement,
@@ -70,23 +72,49 @@ export const initEditor = async (
 	return editor;
 };
 
-export const initEditorTracking = (
+export const initEditorTracking = async (
 	editor: monaco.editor.ICodeEditor,
-	key: string
-): MonacoBinding => {
+	key: string,
+	roomName: string
+): Promise<MonacoBinding> => {
+	const MonacoBinding = await (await import('y-monaco')).MonacoBinding;
+
 	// A Yjs document holds the shared data
 	const ydoc = new Y.Doc();
 	const type = ydoc.getText('monaco'); // TODO Understand better...
 
+	// TODO #22 Handle doc persistence when starting a new webrtc conference.
 	// We persist the document content across sessions
 	const indexeddbProvider = new IndexeddbPersistence(key, ydoc);
 	console.debug(indexeddbProvider);
 
+	const provider = new WebrtcProvider(roomName, ydoc, {
+		// Specify signaling servers. The client will connect to every signaling server concurrently to find other peers as fast as possible.
+		signaling: YJS_WEBRTC_SIGNALLING_SERVERS,
+		// If password is a string, it will be used to encrypt all communication over the signaling servers.
+		// No sensitive information (WebRTC connection info, shared data) will be shared over the signaling servers.
+		// The main objective is to prevent man-in-the-middle attacks and to allow you to securely use public / untrusted signaling instances.
+		password: null,
+		// Specify an existing Awareness instance - see https://github.com/yjs/y-protocols
+		// awareness: null,
+		// Maximal number of WebRTC connections.
+		// A random factor is recommended, because it reduces the chance that n clients form a cluster.
+		maxConns: 3, // 20 + Math.floor(random.rand() * 15),
+		// Whether to disable WebRTC connections to other tabs in the same browser.
+		// Tabs within the same browser share document updates using BroadcastChannels.
+		// WebRTC connections within the same browser are therefore only necessary if you want to share video information too.
+		filterBcConns: true,
+		// simple-peer options. See https://github.com/feross/simple-peer#peer--new-peeropts for available options.
+		// y-webrtc uses simple-peer internally as a library to create WebRTC connections.
+		peerOpts: {}
+	});
+	console.debug(provider);
+
 	const monacoBinding = new MonacoBinding(
 		type,
 		editor.getModel(),
-		new Set([editor]) // Can track multiple editors here...
-		// provider.awareness // TODO Add awareness/people names w/ webrtc
+		new Set([editor]), // Can track multiple editors here...
+		provider.awareness // TODO Add awareness/people names w/ webrtc
 	);
 	// console.log(type);
 	// console.log(indexeddbProvider);
