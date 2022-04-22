@@ -28,14 +28,11 @@
 	</div>
 </section> -->
 
-
 title: About
 
 ---
 
 This is the about page.
-
-
 
 # Acknowledgements
 
