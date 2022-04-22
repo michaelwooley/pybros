@@ -3,12 +3,13 @@
 </script>
 
 <script lang="ts">
-	import PythonExecDemo from '$containers/PythonExecDemo.svelte';
+	import HomeTitleBar from '$components/HomeTitleBar.svelte';
+	import PythonRepl from '$containers/PythonRepl.svelte';
 </script>
 
 <section class="section">
 	<div class="container">
-		<h1 class="title is-1">pysvelte</h1>
-		<PythonExecDemo />
+		<HomeTitleBar />
+		<PythonRepl />
 	</div>
 </section>
