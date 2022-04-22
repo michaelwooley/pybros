@@ -8,7 +8,7 @@
 	let result: string;
 	let worker: Worker;
 	onMount(async () => {
-		const MyWorker = await (await import('$lib/worker?worker')).default;
+		const MyWorker = await (await import('$lib/wasmWorker/worker?worker')).default;
 
 		worker = new MyWorker();
 		worker.onmessage = function (event) {
