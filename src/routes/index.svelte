@@ -5,14 +5,38 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
+	let result: string;
+	let worker: Worker;
 	onMount(async () => {
-		const mod = await import('$lib/wasm/pkg/wasm');
-		console.log(mod);
+		const MyWorker = await (await import('$lib/worker?worker')).default;
 
-		await mod.default();
-
-		mod.greet('is this working?');
+		worker = new MyWorker();
+		worker.onmessage = function (event) {
+			console.log(event);
+			result = event.data;
+			// console.log('Got: ' + event.data + '\n');
+		};
 	});
+
+	const handleFib = (num: number) => {
+		worker.postMessage(num);
+	};
+	// worker.onmessage = function (event) {
+	// 	console.log(event);
+	// 	result = event.data;
+	// 	// console.log('Got: ' + event.data + '\n');
+	// };
+
+	// import { onMount } from 'svelte';
+
+	// onMount(async () => {
+	// 	const mod = await import('$lib/wasm/pkg/wasm');
+	// 	console.log(mod);
+
+	// 	await mod.default();
+
+	// 	mod.greet('is this working?');
+	// });
 </script>
 
 <svelte:head>
@@ -31,5 +55,12 @@
 		to your new<br />SvelteKit app
 	</h1>
 
-	<div class="container">...</div>
+	<div class="container">
+		<!-- <input type="number" />	 -->
+		<button class="button" on:click={() => handleFib(4)}>Run it</button>
+
+		{#if result}
+			<div>Result is: {result}</div>
+		{/if}
+	</div>
 </section>
