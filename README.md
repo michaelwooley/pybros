@@ -1,4 +1,6 @@
-# pysvelte
+# (WIP) pysvelte
+
+> 👋 This is very much a work in progress. Knowing me, I will probably start working on something else and forget about this before completing it 🤷‍♂️.
 
 _**Main idea:** Create a static site that supports collaborative python programming (i.e. [replit](https://replit.com/) without the server)._
 
