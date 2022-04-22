@@ -1,0 +1,55 @@
+[package]
+name = "rustpython_wasm"
+version = "0.1.2"
+authors = ["RustPython Team", "Michael Wooley"]
+license = "MIT"
+description = "A Python-3 (CPython >= 3.5.0) Interpreter written in Rust, compiled to WASM"
+# repository = "https://github.com/RustPython/RustPython/tree/main/wasm/lib"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["freeze-stdlib"]
+freeze-stdlib = ["rustpython-vm/freeze-stdlib"]
+no-start-func = []
+
+[dependencies]
+# REFERENCE https://stackoverflow.com/questions/46786956/can-i-add-a-dependent-crate-that-is-a-subdirectory-in-a-git-repository
+rustpython-parser = { git = "https://github.com/RustPython/RustPython" }
+rustpython-common = { git = "https://github.com/RustPython/RustPython" }
+# # no threading feature for rustpython-vm -- doesn't much matter anyway, but it might be more optimized
+rustpython-vm = { git = "https://github.com/RustPython/RustPython", default-features = false, features = [
+    "compile-parse",
+] }
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+serde-wasm-bindgen = "0.3.1"
+serde = "1.0"
+js-sys = "0.3"
+console_error_panic_hook = "0.1"
+# make parking_lot use wasm-bingden for instant
+parking_lot = { version = "0.11", features = ["wasm-bindgen"] }
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+    "console",
+    "Document",
+    "Element",
+    "Window",
+    "Headers",
+    "Request",
+    "RequestInit",
+    "Response",
+]
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false #["-O1"]
+
+[profile.dev]
+# NOTE Helps with "1: locals exceed maximum (at offset 20867604)"
+# REFERENCE https://ritik-mishra.medium.com/resolving-the-wasm-pack-error-locals-exceed-maximum-ec3a9d96685b
+opt-level = 1
+incremental = true
