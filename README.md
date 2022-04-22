@@ -11,8 +11,8 @@ Implementation path w/ progress:
 - [x] Svelte project
 - [x] Run wasm from rust Package
 - [x] Run wasm within web worker
-- [ ] Run python code using RustPython compiled to wasm.
-- [ ] Add nice editor (monaco, codemirror, etc.)
+- [x] Run python code using RustPython compiled to wasm.
+- [x] Add nice editor (monaco, codemirror, etc.)
 - [ ] Add CRDT/collaboration with [yjs](https://docs.yjs.dev/)
 - [ ] Add webrtc hookups for yjs/collaboration on _editor code_
 - [ ] Add CRDT validation of python editor output/state.
