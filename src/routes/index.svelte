@@ -17,6 +17,11 @@
 			result = event.data;
 			// console.log('Got: ' + event.data + '\n');
 		};
+
+		const mod = await import('$lib/wasm/pkg/wasm');
+		console.log(mod);
+		await mod.default();
+		console.log(mod.fibonacci(30));
 	});
 
 	const handleFib = (num: number) => {
@@ -31,8 +36,8 @@
 	// import { onMount } from 'svelte';
 
 	// onMount(async () => {
-	// 	const mod = await import('$lib/wasm/pkg/wasm');
-	// 	console.log(mod);
+	// const mod = await import('$lib/wasm/pkg/wasm');
+	// console.log(mod);
 
 	// 	await mod.default();
 
