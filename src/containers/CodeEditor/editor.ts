@@ -13,32 +13,38 @@ import type { MonacoBinding } from 'y-monaco';
 import { IndexeddbPersistence } from 'y-indexeddb';
 import { WebrtcProvider } from 'y-webrtc';
 import { YJS_WEBRTC_SIGNALLING_SERVERS } from '$lib/constants';
+// import * as awarenessProtocol from 'y-p';
+
+type TExtendedSelf = typeof globalThis & {
+	MonacoEnvironment: {
+		getWorker: (_moduleId: any, label: string) => Worker;
+	};
+};
+
+(self as unknown as TExtendedSelf).MonacoEnvironment = {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	getWorker: function (_moduleId: any, label: string) {
+		if (label === 'json') {
+			return new jsonWorker();
+		}
+		if (label === 'css' || label === 'scss' || label === 'less') {
+			return new cssWorker();
+		}
+		if (label === 'html' || label === 'handlebars' || label === 'razor') {
+			return new htmlWorker();
+		}
+		if (label === 'typescript' || label === 'javascript') {
+			return new tsWorker();
+		}
+
+		return new editorWorker();
+	}
+};
 
 export const initEditor = async (
 	div: HTMLDivElement,
 	runCmd: (ed: monaco.editor.ICodeEditor) => void
 ): Promise<monaco.editor.IStandaloneCodeEditor> => {
-	// @ts-ignore
-	self.MonacoEnvironment = {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		getWorker: function (_moduleId: any, label: string) {
-			if (label === 'json') {
-				return new jsonWorker();
-			}
-			if (label === 'css' || label === 'scss' || label === 'less') {
-				return new cssWorker();
-			}
-			if (label === 'html' || label === 'handlebars' || label === 'razor') {
-				return new htmlWorker();
-			}
-			if (label === 'typescript' || label === 'javascript') {
-				return new tsWorker();
-			}
-
-			return new editorWorker();
-		}
-	};
-
 	const monaco = await import('monaco-editor');
 	// REFERENCE https://microsoft.github.io/monaco-editor/api/interfaces/monaco.editor.IStandaloneEditorConstructionOptions.html
 	const editor = monaco.editor.create(div, {
@@ -88,7 +94,8 @@ export const initEditorTracking = async (
 	const indexeddbProvider = new IndexeddbPersistence(key, ydoc);
 	console.debug(indexeddbProvider);
 
-	const provider = new WebrtcProvider(roomName, ydoc, {
+	// TODO Fix awareness
+	const opts = {
 		// Specify signaling servers. The client will connect to every signaling server concurrently to find other peers as fast as possible.
 		signaling: YJS_WEBRTC_SIGNALLING_SERVERS,
 		// If password is a string, it will be used to encrypt all communication over the signaling servers.
@@ -96,7 +103,8 @@ export const initEditorTracking = async (
 		// The main objective is to prevent man-in-the-middle attacks and to allow you to securely use public / untrusted signaling instances.
 		password: null,
 		// Specify an existing Awareness instance - see https://github.com/yjs/y-protocols
-		// awareness: null,
+		// TODO Add back protocol once can install y-protocol
+		// awareness: new awarenessProtocol.Awareness(doc),
 		// Maximal number of WebRTC connections.
 		// A random factor is recommended, because it reduces the chance that n clients form a cluster.
 		maxConns: 3, // 20 + Math.floor(random.rand() * 15),
@@ -107,8 +115,14 @@ export const initEditorTracking = async (
 		// simple-peer options. See https://github.com/feross/simple-peer#peer--new-peeropts for available options.
 		// y-webrtc uses simple-peer internally as a library to create WebRTC connections.
 		peerOpts: {}
-	});
+	};
+	const provider = new WebrtcProvider(roomName, ydoc, opts);
 	console.debug(provider);
+
+	provider.awareness.setLocalState({
+		// "color":"#24"
+		name: 'asf'
+	});
 
 	const monacoBinding = new MonacoBinding(
 		type,
@@ -116,9 +130,6 @@ export const initEditorTracking = async (
 		new Set([editor]), // Can track multiple editors here...
 		provider.awareness // TODO Add awareness/people names w/ webrtc
 	);
-	// console.log(type);
-	// console.log(indexeddbProvider);
-	// console.log(monacoBinding);
 
 	return monacoBinding;
 };
