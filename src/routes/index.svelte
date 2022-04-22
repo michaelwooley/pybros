@@ -5,14 +5,27 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
+	let result: string;
+	let worker: Worker;
 	onMount(async () => {
+		const MyWorker = await (await import('$lib/wasmWorker/worker?worker')).default;
+
+		worker = new MyWorker();
+		worker.onmessage = function (event) {
+			console.log(event);
+			console.log(event.data);
+			result = event.data;
+		};
+
 		const mod = await import('$lib/wasm/pkg/wasm');
 		console.log(mod);
-
 		await mod.default();
-
-		mod.greet('is this working?');
+		console.log(mod.fibonacci(30));
 	});
+
+	const handleFib = (num: number) => {
+		worker.postMessage(num);
+	};
 </script>
 
 <svelte:head>
@@ -31,5 +44,12 @@
 		to your new<br />SvelteKit app
 	</h1>
 
-	<div class="container">...</div>
+	<div class="container">
+		<!-- <input type="number" />	 -->
+		<button class="button" on:click={() => handleFib(4)}>Run it</button>
+
+		{#if result}
+			<div>Result is: {result}</div>
+		{/if}
+	</div>
 </section>
