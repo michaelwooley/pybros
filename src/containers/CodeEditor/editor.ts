@@ -14,7 +14,6 @@ import { IndexeddbPersistence } from 'y-indexeddb';
 import { WebrtcProvider } from 'y-webrtc';
 import { YJS_WEBRTC_SIGNALLING_SERVERS } from '$lib/constants';
 import * as awarenessProtocol from 'y-protocols/awareness.js';
-import { randomColor } from '$lib/util';
 
 type TExtendedSelf = typeof globalThis & {
 	MonacoEnvironment: {
@@ -89,6 +88,8 @@ export const initEditorTracking = async (
 	// A Yjs document holds the shared data
 	const ydoc = new Y.Doc();
 	const type = ydoc.getText('monaco'); // TODO Understand better...
+	const undoManager = new Y.UndoManager(type);
+	console.debug(undoManager);
 
 	// TODO #22 Handle doc persistence when starting a new webrtc conference.
 	// We persist the document content across sessions

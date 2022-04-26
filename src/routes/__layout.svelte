@@ -9,8 +9,6 @@
 	<title>{PROJECT_NAME}</title>
 </svelte:head>
 
-<header />
-
 <main id="svelte">
 	<slot />
 </main>
