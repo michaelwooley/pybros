@@ -1,5 +1,5 @@
 import { randomColor } from '$lib/util';
-import { randomName } from '$lib/util/naming';
+import { emojiFromName, randomName } from '$lib/util/naming';
 import { SETTINGS_COOKIE_PREFIX } from '$lib/constants';
 import * as cookie from 'cookie';
 
@@ -38,9 +38,11 @@ export const extractFromCookies = {
 			u = {};
 		}
 
+		const name = u.name || randomName();
 		return {
-			username: u.username || randomName(),
-			color: u.color || randomColor()
+			name,
+			color: u.color || randomColor(),
+			emoji: (u.emoji || emojiFromName(name))[0]
 		};
 	},
 	persistent: (cookies: TCookies): boolean => {

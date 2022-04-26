@@ -19,9 +19,11 @@ declare namespace App {
 }
 
 interface UserSettings {
-	username: string;
+	name: string;
 	color: string;
+	emoji: string;
 }
+
 type TCookies = {
 	[key: string]: string;
 };

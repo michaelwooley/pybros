@@ -81,7 +81,8 @@ export const initEditor = async (
 export const initEditorTracking = async (
 	editor: monaco.editor.ICodeEditor,
 	key: string,
-	roomName: string
+	roomName: string,
+	awarenessState: UserSettings
 ): Promise<MonacoBinding> => {
 	// const MonacoBinding = await (await import('y-monaco')).MonacoBinding;
 
@@ -118,17 +119,32 @@ export const initEditorTracking = async (
 	const provider = new WebrtcProvider(roomName, ydoc, opts);
 	console.debug(provider);
 
-	provider.awareness.setLocalState({
-		color: randomColor(),
-		name: 'asf'
-	});
+	provider.awareness.setLocalStateField('user', awarenessState);
 
 	const monacoBinding = new MonacoBinding(
 		type,
 		editor.getModel(),
 		new Set([editor]), // Can track multiple editors here...
-		provider.awareness // TODO Add awareness/people names w/ webrtc
+		provider.awareness
 	);
+
+	provider.connect(); // Necessary?
+	/** What do updates look like?
+	 * (2) [{…}, 'local']
+		0: {added: Array(0), updated: Array(1), removed: Array(0)}
+		1: "local"
+
+		OR:
+
+		(2) [{…}, Room]
+		0: {added: Array(0), updated: Array(1), removed: Array(0)}
+		1: Room {p
+	 */
+	// TODO #24 Style cursors by user by modifying .yRemoteSelection-{clientId} css
+	// See CodeEditor.svelte style tag for current behavior
+	// REFERENCE https://github.com/yjs/y-monaco/#styling
+	// REFERENCE https://github.com/yjs/y-monaco/blob/master/src/y-monaco.js#L88-L122
+	// provider.awareness.on('update', (...a) => console.log('awareness ipdate: ', a));
 
 	return monacoBinding;
 };
