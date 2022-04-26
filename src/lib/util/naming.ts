@@ -4,6 +4,9 @@ export const randomAnimal = () => _ANIMALS[Math.floor(Math.random() * _ANIMALS_L
 export const randomName = (machine = false): string =>
 	`${randomDescriptor()} ${randomAnimal()}`.replace(' ', machine ? '-' : ' ');
 
+export const randomMeetingName = () =>
+	`${randomAnimal().toLowerCase().replace(' ', '-')}-${makeid(10)}`;
+
 export const emojiFromName = (name: string): string => {
 	if (_NAME_TO_EMOJI[name]) {
 		return _NAME_TO_EMOJI[name];
@@ -16,6 +19,21 @@ export const emojiFromName = (name: string): string => {
 	}
 	return v;
 };
+
+/**
+ * h/t https://stackoverflow.com/a/1349426/3422060
+ * @param length Length of ID
+ * @returns an ID
+ */
+function makeid(length: number): string {
+	let result = '';
+	const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	const charactersLength = characters.length;
+	for (let i = 0; i < length; i++) {
+		result += characters.charAt(Math.floor(Math.random() * charactersLength));
+	}
+	return result;
+}
 
 const _NAME_TO_EMOJI = { Monkey: '🐒', Gorilla: '🦍', Orangutan: '🦧', 'Dog Face': '🐶', Dog: '🐕', 'Guide Dog': '🦮', 'Service Dog': '🐕‍🦺', Poodle: '🐩', Wolf: '🐺', Fox: '🦊', Raccoon: '🦝', Cat: '🐈', 'Black Cat': '🐈‍⬛', Lion: '🦁', Tiger: '🐅', Leopard: '🐆', Horse: '🐎', Unicorn: '🦄', Zebra: '🦓', Deer: '🦌', Ox: '🐂', 'Water Buffalo': '🐃', Cow: '🐄', Pig: '🐖', Boar: '🐗', 'Pig Nose': '🐽', Ram: '🐏', Ewe: '🐑', Goat: '🐐', Camel: '🐪', 'Two-hump Camel': '🐫', Llama: '🦙', Giraffe: '🦒', Elephant: '🐘', Mammoth: '🦣', Rhinoceros: '🦏', Hippopotamus: '🦛', Mouse: '🐁', Rat: '🐀', Hamster: '🐹', Rabbit: '🐇', Chipmunk: '🐿️', Beaver: '🦫', Hedgehog: '🦔', Bat: '🦇', Bear: '🐻', 'Polar Bear': '🐻‍❄️', Koala: '🐨', Panda: '🐼', Sloth: '🦥', Otter: '🦦', Skunk: '🦨', Kangaroo: '🦘', Badger: '🦡', 'Paw Prints': '🐾', Turkey: '🦃', Chicken: '🐔', Rooster: '🐓', 'Hatching Chick': '🐣', 'Baby Chick': '🐤', Bird: '🐦', Penguin: '🐧', Dove: '🕊️', Eagle: '🦅', Duck: '🦆', Swan: '🦢', Owl: '🦉', Dodo: '🦤', Feather: '🪶', Flamingo: '🦩', Peacock: '🦚', Parrot: '🦜', Frog: '🐸', Crocodile: '🐊', Turtle: '🐢', Lizard: '🦎', Snake: '🐍', Dragon: '🐉', Sauropod: '🦕', 'T-Rex': '🦖', Whale: '🐋', Dolphin: '🐬', Seal: '🦭', Fish: '🐟', 'Tropical Fish': '🐠', Blowfish: '🐡', Shark: '🦈', Octopus: '🐙', 'Spiral Shell': '🐚', Coral: '🪸', Snail: '🐌', Butterfly: '🦋', Bug: '🐛', Ant: '🐜', Honeybee: '🐝', Beetle: '🪲', 'Lady Beetle': '🐞', Cricket: '🦗', Cockroach: '🪳', Spider: '🕷️', 'Spider Web': '🕸️', Scorpion: '🦂', Mosquito: '🦟', Fly: '🪰', Worm: '🪱', Microbe: '🦠' } as Record<string,string>; // prettier-ignore
 // Not included:
