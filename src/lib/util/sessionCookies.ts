@@ -10,6 +10,7 @@ export const cookieSessionKeysConverter = {
 	from: (k: string): string => k.replace(`${SETTINGS_COOKIE_PREFIX}-`, '')
 };
 
+// eslint-disable-next-line  @typescript-eslint/no-explicit-any
 export const serializeCookie = (k: string, v: any, persist = false): string =>
 	cookie.serialize(cookieSessionKeysConverter.to(k), JSON.stringify(v), {
 		path: '/',

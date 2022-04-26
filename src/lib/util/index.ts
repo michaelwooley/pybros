@@ -1,5 +1,3 @@
-import { SETTINGS_COOKIE_PREFIX } from '$lib/constants';
-
 // TODO #23 Pretty colors w/ golden ratio
 const _USER_COLORS = [
 	'#30bced',

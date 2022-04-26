@@ -18,13 +18,12 @@ import { randomColor } from '$lib/util';
 
 type TExtendedSelf = typeof globalThis & {
 	MonacoEnvironment: {
-		getWorker: (_moduleId: any, label: string) => Worker;
+		getWorker: (_moduleId: string, label: string) => Worker;
 	};
 };
 
 (self as unknown as TExtendedSelf).MonacoEnvironment = {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	getWorker: function (_moduleId: any, label: string) {
+	getWorker: function (_moduleId: string, label: string) {
 		if (label === 'json') {
 			return new jsonWorker();
 		}
