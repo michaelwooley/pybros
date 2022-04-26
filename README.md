@@ -1,9 +1,10 @@
-# (WIP) pysvelte
+# (WIP) pybros
 
 > 👋 This is very much a work in progress. Knowing me, I will probably start working on another side project and forget about this before long 🤷‍♂️. (I have a bit more follow-through at work :|)
 
 - _**Main idea:** Create a static site that supports collaborative python programming (i.e. [replit](https://replit.com/) without the server)._
 - _**Status.**_ Pre-alpha. Something of an MVP is complete. However, expect rough edges. Especially related to python operations and resolution of shared docs when collaborating. Loading of editor + python repl will feel rather slow/rough.
+- _**What's with the name?**_ "Python with the bros in the browser."
 
 ---
 
@@ -38,8 +39,8 @@ _In development, web workers will only work well/hot reload in chromium-based br
 To get started:
 
 ```bash
-git clone git@github.com:michaelwooley/pysvelte.github
-cd pysvelte
+git clone git@github.com:michaelwooley/pybros.github
+cd pybros
 npm i
 
 npm run dev

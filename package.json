@@ -1,5 +1,5 @@
 {
-	"name": "pysvelte",
+	"name": "pybros",
 	"version": "0.0.1",
 	"scripts": {
 		"dev:signal-server": "PORT=4444 node ./bin/server.js",
