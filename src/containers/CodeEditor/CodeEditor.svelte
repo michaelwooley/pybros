@@ -45,20 +45,29 @@
 	}
 	:global(div.monaco-editor .yRemoteSelectionHead) {
 		position: absolute;
-		border-left: orange solid 2px;
-		border-top: orange solid 2px;
-		border-bottom: orange solid 2px;
+		// border-left: orange solid 2px;
+		border-left-color: orange; //blue;
+		border-left-style: solid;
+		border-left-width: 2px;
+		// border-bottom: orange solid 2px;
+		border-bottom-color: orange; //blue;
+		border-bottom-style: solid;
+		border-bottom-width: 2px;
 		//  NOTE Can specify borders separately.
-		//border-top-color: ${color};
-		// border-top-style: solid;
-		// border-top-width: 2px;
+		// border-top: orange solid 2px;
+		border-top-color: orange; //blue;
+		border-top-style: solid;
+		border-top-width: 2px;
 		height: 100%;
 		box-sizing: border-box;
 	}
 	:global(div.monaco-editor .yRemoteSelectionHead::after) {
 		position: absolute;
 		content: ' ';
-		border: 3px solid orange;
+		// border: 3px solid orange;
+		border-color: orange; //blue;
+		border-style: solid;
+		border-width: 2px;
 		border-radius: 4px;
 		left: -4px;
 		top: -5px;

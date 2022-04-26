@@ -129,21 +129,22 @@ export const initEditorTracking = async (
 	);
 
 	provider.connect(); // Necessary?
+
+	// TODO #24 Style cursors by user by modifying .yRemoteSelection-{clientId} css
+	// See CodeEditor.svelte style tag for current behavior
+	// REFERENCE https://github.com/yjs/y-monaco/#styling
+	// REFERENCE https://github.com/yjs/y-monaco/blob/master/src/y-monaco.js#L88-L122
 	/** What do updates look like?
 	 * (2) [{…}, 'local']
 		0: {added: Array(0), updated: Array(1), removed: Array(0)}
 		1: "local"
 
-		OR:
+		OR if someone else changes:
 
 		(2) [{…}, Room]
 		0: {added: Array(0), updated: Array(1), removed: Array(0)}
 		1: Room {p
 	 */
-	// TODO #24 Style cursors by user by modifying .yRemoteSelection-{clientId} css
-	// See CodeEditor.svelte style tag for current behavior
-	// REFERENCE https://github.com/yjs/y-monaco/#styling
-	// REFERENCE https://github.com/yjs/y-monaco/blob/master/src/y-monaco.js#L88-L122
 	// provider.awareness.on('update', (...a) => console.log('awareness ipdate: ', a));
 
 	return monacoBinding;
