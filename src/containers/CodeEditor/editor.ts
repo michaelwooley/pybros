@@ -9,11 +9,12 @@ import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
 import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
 import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
 import * as Y from 'yjs';
-import type { MonacoBinding } from 'y-monaco';
+import { MonacoBinding } from 'y-monaco';
 import { IndexeddbPersistence } from 'y-indexeddb';
 import { WebrtcProvider } from 'y-webrtc';
 import { YJS_WEBRTC_SIGNALLING_SERVERS } from '$lib/constants';
-// import * as awarenessProtocol from 'y-p';
+import * as awarenessProtocol from 'y-protocols/awareness.js';
+import { randomColor } from '$lib/util';
 
 type TExtendedSelf = typeof globalThis & {
 	MonacoEnvironment: {
@@ -83,7 +84,7 @@ export const initEditorTracking = async (
 	key: string,
 	roomName: string
 ): Promise<MonacoBinding> => {
-	const MonacoBinding = await (await import('y-monaco')).MonacoBinding;
+	// const MonacoBinding = await (await import('y-monaco')).MonacoBinding;
 
 	// A Yjs document holds the shared data
 	const ydoc = new Y.Doc();
@@ -103,8 +104,7 @@ export const initEditorTracking = async (
 		// The main objective is to prevent man-in-the-middle attacks and to allow you to securely use public / untrusted signaling instances.
 		password: null,
 		// Specify an existing Awareness instance - see https://github.com/yjs/y-protocols
-		// TODO Add back protocol once can install y-protocol
-		// awareness: new awarenessProtocol.Awareness(doc),
+		awareness: new awarenessProtocol.Awareness(ydoc),
 		// Maximal number of WebRTC connections.
 		// A random factor is recommended, because it reduces the chance that n clients form a cluster.
 		maxConns: 3, // 20 + Math.floor(random.rand() * 15),
@@ -120,7 +120,7 @@ export const initEditorTracking = async (
 	console.debug(provider);
 
 	provider.awareness.setLocalState({
-		// "color":"#24"
+		color: randomColor(),
 		name: 'asf'
 	});
 
