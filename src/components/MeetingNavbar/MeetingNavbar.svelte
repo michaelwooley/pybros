@@ -53,6 +53,7 @@
 		</div>
 
 		<div class="navbar-end">
+			<!-- TODO #30 Add list of meeting participants in meeting navbar -->
 			<div class="navbar-item">
 				<InviteButtons {href} />
 			</div>
