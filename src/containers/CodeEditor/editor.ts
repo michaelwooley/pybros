@@ -14,7 +14,6 @@ import { IndexeddbPersistence } from 'y-indexeddb';
 import { WebrtcProvider } from 'y-webrtc';
 import { YJS_WEBRTC_SIGNALLING_SERVERS } from '$lib/constants';
 import * as awarenessProtocol from 'y-protocols/awareness.js';
-import { randomColor } from '$lib/util';
 
 type TExtendedSelf = typeof globalThis & {
 	MonacoEnvironment: {
