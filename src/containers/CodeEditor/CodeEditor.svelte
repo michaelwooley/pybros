@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from 'svelte';
 	import type monaco from 'monaco-editor';
-	import { initEditor, initEditorTracking } from './editor';
-	import { YJS_INDEXEDDB_EDITOR_KEY } from '$lib/constants';
+	// import { initEditor, initEditorTracking } from './editor';
+	import { YJS_INDEXEDDB_EDITOR_KEY, YJS_WEBRTC_COMMON_ROOM } from '$lib/constants';
+	import { session } from '$app/stores';
 
 	const dispatch = createEventDispatcher<{ run: string }>();
 
@@ -19,8 +20,10 @@
 		if (!divEl) {
 			throw new Error('Div not found..');
 		}
+		const { initEditor, initEditorTracking } = await import('./editor');
+
 		editor = await initEditor(divEl, handleRunCmd);
-		initEditorTracking(editor, YJS_INDEXEDDB_EDITOR_KEY);
+		initEditorTracking(editor, YJS_INDEXEDDB_EDITOR_KEY, YJS_WEBRTC_COMMON_ROOM, $session.user);
 
 		return () => {
 			editor.dispose();
@@ -34,5 +37,39 @@
 	.editor {
 		width: 100%;
 		height: 100%;
+	}
+
+	// TODO #24 Remove in favor of client-specific colors.
+	:global(div.monaco-editor .yRemoteSelection) {
+		background-color: rgb(250, 129, 0, 0.5);
+	}
+	:global(div.monaco-editor .yRemoteSelectionHead) {
+		position: absolute;
+		// border-left: orange solid 2px;
+		border-left-color: orange; //blue;
+		border-left-style: solid;
+		border-left-width: 2px;
+		// border-bottom: orange solid 2px;
+		border-bottom-color: orange; //blue;
+		border-bottom-style: solid;
+		border-bottom-width: 2px;
+		//  NOTE Can specify borders separately.
+		// border-top: orange solid 2px;
+		border-top-color: orange; //blue;
+		border-top-style: solid;
+		border-top-width: 2px;
+		height: 100%;
+		box-sizing: border-box;
+	}
+	:global(div.monaco-editor .yRemoteSelectionHead::after) {
+		position: absolute;
+		content: ' ';
+		// border: 3px solid orange;
+		border-color: orange; //blue;
+		border-style: solid;
+		border-width: 2px;
+		border-radius: 4px;
+		left: -4px;
+		top: -5px;
 	}
 </style>

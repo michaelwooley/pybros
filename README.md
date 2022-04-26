@@ -13,8 +13,8 @@ Implementation path w/ progress:
 - [x] Run wasm within web worker
 - [x] Run python code using RustPython compiled to wasm.
 - [x] Add nice editor (monaco, codemirror, etc.)
-- [ ] Add CRDT/collaboration with [yjs](https://docs.yjs.dev/)
-- [ ] Add webrtc hookups for yjs/collaboration on _editor code_
+- [x] Add CRDT/collaboration with [yjs](https://docs.yjs.dev/)
+- [x] Add webrtc hookups for yjs/collaboration on _editor code_
 - [ ] Add CRDT validation of python editor output/state.
 
 # Features
@@ -23,11 +23,11 @@ Glues a lot of components together, particularly in the sveltekit/vite context:
 
 - [x] WASM
   - [x] Simple/example wasm (i.e. greet, fibonacci)
-  - [ ] Non-trivial WASM (i.e. make use of a complex crate)
+  - [x] (sort of...) Non-trivial WASM (i.e. make use of a complex crate)
 - [x] Web workers (w/ typescript)
-- [ ] Rich editors
-- [ ] WebRTC
-- [ ] YJS
+- [x] Rich editors
+- [x] WebRTC
+- [x] YJS
 
 # Development
 

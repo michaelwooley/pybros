@@ -4,12 +4,26 @@
 // for information about these interfaces
 declare namespace App {
 	interface Locals {
-		userid: string;
+		persistent: boolean;
+		user: UserSettings;
 	}
 
 	// interface Platform {}
 
-	// interface Session {}
+	interface Session {
+		persistent: boolean;
+		user: UserSettings;
+	}
 
 	// interface Stuff {}
 }
+
+interface UserSettings {
+	name: string;
+	color: string;
+	emoji: string;
+}
+
+type TCookies = {
+	[key: string]: string;
+};

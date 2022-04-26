@@ -1,24 +1,34 @@
-// import { v4 as uuid } from '@lukeed/uuid';
-import type { Handle } from '@sveltejs/kit';
-// import * as cookie from 'cookie';
+import {
+	extractFromCookies,
+	getCookies,
+	setCookiesFromSessionLocals
+} from '$lib/util/sessionCookies';
+import type { Handle, GetSession } from '@sveltejs/kit';
+
+// const setCookiesFromSessionLocals = (
+// 	sess: App.Session,
+// 	handler: (s: string) => void
+// 	// res: Response
+// ): void => {
+// 	for (const [k, v] of Object.entries(sess)) {
+// 		// res.headers.append('set-cookie', serializeCookie(k, v, event.persistent));
+// 		handler(serializeCookie(k, v, sess.persistent));
+// 	}
+// };
 
 export const handle: Handle = async ({ event, resolve }) => {
-	// const cookies = cookie.parse(event.request.headers.get('cookie') || '');
-	// event.locals.userid = cookies['userid'] || uuid();
+	const cookies = getCookies(event.request.headers.get('cookie'));
+
+	event.locals.user = extractFromCookies.user(cookies);
+	event.locals.persistent = extractFromCookies.persistent(cookies);
 
 	const response = await resolve(event);
 
-	// if (!cookies['userid']) {
-	// 	// if this is the first time the user has visited this app,
-	// 	// set a cookie so that we recognise them when they return
-	// 	response.headers.set(
-	// 		'set-cookie',
-	// 		cookie.serialize('userid', event.locals.userid, {
-	// 			path: '/',
-	// 			httpOnly: true
-	// 		})
-	// 	);
-	// }
-
+	setCookiesFromSessionLocals(event.locals, (c) => response.headers.append('set-cookie', c));
 	return response;
+};
+
+/** @type {import('@sveltejs/kit').GetSession} */
+export const getSession: GetSession = (e): App.Session => {
+	return e.locals;
 };
