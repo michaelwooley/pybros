@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Footer from '$components/Footer.svelte';
+	import PersistentSession from '$containers/PersistentSession.svelte';
 	import { PROJECT_NAME } from '$lib/constants';
-
 	import '../app.scss';
 </script>
 
@@ -16,6 +16,7 @@
 </main>
 
 <Footer />
+<PersistentSession />
 
 <style>
 	main {
