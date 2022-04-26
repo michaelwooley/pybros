@@ -32,7 +32,22 @@ title: About
 
 ---
 
-This is the about page.
+
+_**Main idea:** Create a static site that supports collaborative python programming (i.e. [replit](https://replit.com/) without the server)._
+
+---
+
+Implementation path w/ progress:
+
+- [x] Svelte project
+- [x] Run wasm from rust Package
+- [x] Run wasm within web worker
+- [x] Run python code using RustPython compiled to wasm.
+- [x] Add nice editor (monaco, codemirror, etc.)
+- [x] Add CRDT/collaboration with [yjs](https://docs.yjs.dev/)
+- [x] Add webrtc hookups for yjs/collaboration on _editor code_
+- [ ] Add CRDT validation of python editor output/state.
+
 
 # Acknowledgements
 
