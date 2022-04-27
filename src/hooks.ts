@@ -23,8 +23,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.persistent = extractFromCookies.persistent(cookies);
 
 	const response = await resolve(event);
+	// response.headers.append('Cross-Origin-Opener-Policy', 'same-origin');
+	// response.headers.append('Cross-Origin-Opener-Policy-Report-Only', 'same-origin');
+	// response.headers.append('Cross-Origin-Embedder-Policy', 'require-corp');
+	// response.headers.append('Cross-Origin-Embedder-Policy-Report-Only', 'require-corp');
 
 	setCookiesFromSessionLocals(event.locals, (c) => response.headers.append('set-cookie', c));
+
 	return response;
 };
 

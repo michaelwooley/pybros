@@ -44,6 +44,9 @@ const config = {
 				}
 			},
 			build: {
+				rollupOptions: {
+					external: []
+				}
 				// assetsInlineLimit: 0
 			}
 		}

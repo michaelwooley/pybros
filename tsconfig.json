@@ -13,7 +13,7 @@
 		"sourceMap": true,
 		"strict": true,
 		"target": "es2020",
-		"isolatedModules": true,
+		"isolatedModules": false, //true,
 		"paths": {
 			"$lib": ["src/lib"],
 			"$lib/*": ["src/lib/*"],
