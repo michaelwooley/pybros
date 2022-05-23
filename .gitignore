@@ -13,3 +13,4 @@ node_modules
 **/target
 /*/target
 /scratch
+/.netlify
