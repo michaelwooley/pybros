@@ -1,22 +1,25 @@
 #! /bin/bash
 
-TAR_NAME=./scratch/pyodide.tar
-TAR_BZ2_NAME=${TAR_NAME}.bz2
+DOWNLOAD_URL=https://github.com/pyodide/pyodide/releases/download/0.20.1a1/pyodide-build-0.20.1a1.tar.bz2
+TAR_BZ2_NAME=./pyodide.tar.bz2
 
 # using [ expression ] syntax and in place
 # of File.txt you can write your file name
-if [ -f "${TAR_NAME}" ];
+if [ -f "${TAR_BZ2_NAME}" ];
 then
-    echo "[preinstall] scratch/pyodide.tar already downloaded."
+    echo "[preinstall] scratch/pyodide.tar.bz2 already downloaded."
     exit;
-then
+else
     # if file exist the it will be printed
     echo "[preinstall] Downloading pyodide from github build..."
 fi
 
 
 mkdir scratch -p
-rm -f $TAR_NAME $TAR_BZ2_NAME
+rm -rf $TAR_BZ2_NAME .pyodide
 
-curl -LJ -o ${TAR_BZ2_NAME} https://github.com/pyodide/pyodide/releases/download/0.20.1a1/pyodide-build-0.20.1a1.tar.bz2
-bzip2 -kd $TAR_BZ2_NAME
+curl -LJ -o ${TAR_BZ2_NAME} $DOWNLOAD_URL
+
+# Extract archive
+tar -xf ./scratch/pyodide.tar.bz2
+mv pyodide .pyodide
