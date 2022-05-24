@@ -21,3 +21,7 @@ export const YJS_WEBRTC_SIGNALLING_SERVERS = dev
 
 // TODO #21 Create and handle multiple webrtc rooms. (One per meet.)
 export const YJS_WEBRTC_COMMON_ROOM = 'pybros-room';
+
+export const PYODIDE_INDEX_URL = `https://cdn.jsdelivr.net/pyodide/v${
+	import.meta.env.VITE_PYODIDE_VERSION
+}/full/`; // import.meta.env.VITE_PYODIDE_INDEX_URL || 'https://cdn.jsdelivr.net/pyodide/v0.20.1a1/full/';

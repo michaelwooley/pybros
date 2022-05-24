@@ -3,13 +3,15 @@
 </script>
 
 <script lang="ts">
-	import HomeTitleBar from '$components/HomeTitleBar.svelte';
-	import PythonRepl from '$containers/PythonRepl.svelte';
+	// import HomeTitleBar from '$components/HomeTitleBar.svelte';
+	// import PythonRepl from '$containers/PythonRepl.svelte';
+	import PyodideDemoNonWorker from '$containers/PyodideDemoNonWorker.svelte';
 </script>
 
 <section class="section">
 	<div class="container">
-		<HomeTitleBar />
-		<PythonRepl />
+		<!-- <HomeTitleBar />
+		<PythonRepl /> -->
+		<PyodideDemoNonWorker />
 	</div>
 </section>

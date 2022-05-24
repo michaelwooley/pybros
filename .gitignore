@@ -15,4 +15,4 @@ node_modules
 /scratch
 /.netlify
 .pyodide
-*.tar.bz2
+pyodide.tar*
