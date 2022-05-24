@@ -11,5 +11,6 @@
 		"vue",
 		"markdown",
 		"svelte"
-	]
+	],
+	"editor.formatOnSave": true
 }

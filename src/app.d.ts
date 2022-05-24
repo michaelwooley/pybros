@@ -27,3 +27,6 @@ interface UserSettings {
 type TCookies = {
 	[key: string]: string;
 };
+
+// Brilliant: https://stackoverflow.com/a/60301306/3422060
+type GetInsidePromise<X> = X extends Promise<infer I> ? I : never;
