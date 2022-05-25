@@ -49,10 +49,6 @@ export class PyodideMainClient {
 	public restart(payload: IRestartWorkerCmdPayload): void {
 		this._postMessage({ cmd: WorkerCmdEnum.RESTART, payload });
 	}
-
-	get isReady(): boolean {
-		return !!this.worker;
-	}
 }
 
 /**
@@ -97,6 +93,7 @@ export class PyodideMainService {
 	}
 
 	private async handleRunStart(data: IRunStartClientCmd): Promise<void> {
+		// TODO Track running/not running in the PyodideMain class.
 		const cb = this.callbacks.handleRunStart || console.log;
 		await cb(data, this.client);
 	}
@@ -117,6 +114,7 @@ export class PyodideMain {
 	svc: PyodideMainService;
 	worker: Worker;
 
+	// TODO Add second callbacks layer for use by the main class.
 	constructor(callbacks: IPyodideMainOnMessageCallbacks) {
 		this.svc = new PyodideMainService(this, callbacks);
 
@@ -126,5 +124,36 @@ export class PyodideMain {
 		this.client = new PyodideMainClient(this.worker);
 	}
 
-	// async init() {}
+	// async init() {} // TODO Need init here??
+
+	get isReady(): boolean {
+		return !!this.worker && !!this.client;
+	}
+}
+
+/**
+ * Callbacks class
+ * TODO Make this do something interesting.
+ */
+export class DefaultPyodideMainCallbacks implements IPyodideMainOnMessageCallbacks {
+	static async handleStartup(data: IStartupRunClientCmd, client: PyodideMain): Promise<void> {
+		console.info(data);
+		console.log(client);
+	}
+	static async handleOutput(data: IOutputClientCmd, client: PyodideMain): Promise<void> {
+		console.info(data);
+		console.log(client);
+	}
+	static async handleRunStart(data: IRunStartClientCmd, client: PyodideMain): Promise<void> {
+		console.info(data);
+		console.log(client);
+	}
+	static async handleRunComplete(data: IRunCompleteClientCmd, client: PyodideMain): Promise<void> {
+		console.info(data);
+		console.log(client);
+	}
+	static async handleWorkerError(data: IWorkerErrorClientCmd, client: PyodideMain): Promise<void> {
+		console.error(data);
+		console.log(client);
+	}
 }
