@@ -10,54 +10,202 @@
 
 import { PYODIDE_INDEX_URL } from '$lib/constants';
 import * as pyodideModule from 'pyodide';
+import {
+	ClientCmdEnum,
+	WorkerCmdEnum,
+	type IClientCmdsUnion,
+	type IOutputClientCmdPayload,
+	type IRestartWorkerCmd,
+	type IRunCmdWorkerCmd,
+	type IRunCompleteClientCmdPayload,
+	type IRunStartClientCmdPayload,
+	type IStartupRunClientCmdPayload,
+	type IWorkerCmdsUnion,
+	type IWorkerErrorClientCmdPayload
+} from './protocol';
+
+type PyodideInterface = GetInsidePromise<ReturnType<typeof pyodideModule.loadPyodide>>;
 
 declare global {
 	// eslint-disable-next-line no-var
-	var pyodide: GetInsidePromise<ReturnType<typeof pyodideModule.loadPyodide>>;
+	var pyodideWorker: PyodideWorker;
 }
 
-async function loadPyodideAndPackages() {
-	self.pyodide = await pyodideModule.loadPyodide({
-		indexURL: PYODIDE_INDEX_URL,
-		stdout: (msg) => console.log('stdout: ', msg)
-	});
-	// await self.pyodide.loadPackage(['numpy', 'pytz']);
+interface IPyodideWorkerOnMessageCallbacks {
+	handleRunCmd?: (data: IRunCmdWorkerCmd, worker: PyodideWorker) => Promise<void>;
+	handleRestart?: (data: IRestartWorkerCmd, worker: PyodideWorker) => Promise<void>;
+}
+
+class PyodideWorkerPostMessage {
+	constructor(public postMessage: typeof globalThis.postMessage) {}
+	private _postMessage(data: IClientCmdsUnion): void {
+		this.postMessage(data);
+	}
+
+	public startup(payload: IStartupRunClientCmdPayload): void {
+		this._postMessage({ cmd: ClientCmdEnum.STARTUP, payload });
+	}
+
+	public output(payload: IOutputClientCmdPayload): void {
+		this._postMessage({ cmd: ClientCmdEnum.OUTPUT, payload });
+	}
+
+	public runStart(payload: IRunStartClientCmdPayload): void {
+		this._postMessage({ cmd: ClientCmdEnum.RUN_START, payload });
+	}
+	public runComplete(payload: IRunCompleteClientCmdPayload): void {
+		this._postMessage({ cmd: ClientCmdEnum.RUN_COMPLETE, payload });
+	}
+	public workerError(payload: IWorkerErrorClientCmdPayload): void {
+		this._postMessage({ cmd: ClientCmdEnum.WORKER_ERROR, payload });
+	}
+}
+
+class PyodideWorkerMessageHandler {
+	constructor(public worker: PyodideWorker, public callbacks: IPyodideWorkerOnMessageCallbacks) {}
+
+	public async handleWorkerMessage(e: MessageEvent<IWorkerCmdsUnion>): Promise<void> {
+		// Error case: Worker did not load pyodide.
+		if (this.worker.readyPromise == undefined) {
+			this.worker.pm.workerError({
+				err: new Error('Worker does not appear to be initialized. Cannot process request.')
+			});
+			return;
+		}
+
+		// Wait until the worker is ready to process the request.
+		await this.worker.readyPromise;
+		// NOTE We don't do python context from JS here...
+
+		// Extract request data.
+		const data = e.data;
+
+		switch (data.cmd) {
+			case WorkerCmdEnum.RUN_CMD: {
+				return await this.handleRunCmd(data);
+			}
+			case WorkerCmdEnum.RESTART: {
+				return await this.handleRestart(data);
+			}
+			default: {
+				throw new Error(`Unknown WorkerCmdData command: ${data}`);
+			}
+		}
+	}
+
+	private async handleRunCmd(data: IRunCmdWorkerCmd): Promise<void> {
+		const cb = this.callbacks.handleRunCmd || console.log;
+		await cb(data, this.worker);
+	}
+
+	private async handleRestart(data: IRestartWorkerCmd): Promise<void> {
+		const cb = this.callbacks.handleRestart || (() => console.error('asf'));
+		await cb(data, this.worker);
+	}
+}
+
+class PyodideWorker {
+	mh: PyodideWorkerMessageHandler;
+	pm: PyodideWorkerPostMessage;
+
+	pyodide?: PyodideInterface;
+	readyPromise?: Promise<void>;
+
+	constructor(
+		public postMessage: typeof globalThis.postMessage,
+		public indexURL: string,
+		public callbacks: IPyodideWorkerOnMessageCallbacks
+	) {
+		this.pm = new PyodideWorkerPostMessage(postMessage);
+		this.mh = new PyodideWorkerMessageHandler(this, callbacks);
+	}
+
+	private async loadPyodideAndPackages(): Promise<void> {
+		this.pyodide = await pyodideModule.loadPyodide({
+			indexURL: this.indexURL,
+			stdout: (msg) => this.pm.output({ msg, stream: 'stdout' }),
+			stderr: (msg) => this.pm.output({ msg, stream: 'stderr' })
+			// stdin?: () => string; // TODO handle stdin here...see docstring
+		});
+
+		this.pyodide.loadPackagesFromImports;
+		// await self.pyodide.loadPackage(['numpy', 'pytz']);
+	}
+
+	init(): void {
+		this.readyPromise = this.loadPyodideAndPackages()
+			.then(() => this.pm.startup({ status: 'ready' }))
+			.catch((err) => this.pm.startup({ status: 'failed', err }));
+	}
+
+	get handleWorkerMessage(): (e: MessageEvent<IWorkerCmdsUnion>) => Promise<void> {
+		return this.mh.handleWorkerMessage;
+	}
+}
+
+interface IMessageCallbacks extends IPyodideWorkerOnMessageCallbacks {
+	_getPyo?: (w: PyodideWorker) => PyodideInterface;
+	_castCaughtErrorToError?: (e: unknown) => Error;
 }
 
 /**
- * Initialization command
+ * Route handlers for messages received by worker.
  */
-const pyodideReadyPromise = loadPyodideAndPackages()
-	.then(() => self.postMessage({ cmd: 'startup', payload: { status: 'ready' } }))
-	.catch((e) => self.postMessage({ cmd: 'startup', payload: { status: 'failed', err: e } }));
+class MessageCallbacks implements IMessageCallbacks {
+	static async handleRunCmd(data: IRunCmdWorkerCmd, w: PyodideWorker): Promise<void> {
+		const pyo = MessageCallbacks._getPyo(w);
+		const { code, id, console_id } = data.payload;
 
-self.onmessage = async (event) => {
-	// make sure loading is done
-	await pyodideReadyPromise;
+		w.pm.runStart({ id, console_id });
 
-	// Don't bother yet with this line, suppose our API is built in such a way:
-	const { id, python, ...context } = event.data;
+		try {
+			await pyo.loadPackagesFromImports(data.payload.code);
+			const returns = await pyo.runPythonAsync(code, {});
+			w.pm.runComplete({ id, console_id, returns, status: 'ok' });
+		} catch (e) {
+			console.error('Error in python run: ', e);
+			const err = MessageCallbacks._castCaughtErrorToError(e);
 
-	// TODO Work out use of context... what the heck??!
-	// // The worker copies the context in its own "memory" (an object mapping name to values)
-	// for (const key of Object.keys(context)) {
-	// 	self[key] = context[key];
-	// }
-	// Now is the easy part, the one that is similar to working in the main thread:
-	try {
-		self.pyodide.runPython('a');
-		await self.pyodide.loadPackagesFromImports(python);
-		const results = await self.pyodide.runPythonAsync(python);
-		self.postMessage({ results, id });
-	} catch (e) {
-		let result: string;
-		if (typeof e === 'string') {
-			result = e;
-		} else if (e instanceof Error) {
-			result = e.message;
-		} else {
-			result = `(Unknown error type) ${e}`;
+			w.pm.runComplete({ id, console_id, err, status: 'err' });
 		}
-		self.postMessage({ error: result, id });
 	}
-};
+
+	static async handleRestart(data: IRestartWorkerCmd, worker: PyodideWorker): Promise<void> {
+		// TODO Implement restart handler.
+		console.error('Restart hadnler not implemented!', data);
+		console.log(worker);
+	}
+
+	/**
+	 * UTILITY FNs
+	 */
+
+	static _getPyo(w: PyodideWorker): PyodideInterface {
+		const pyo = w.pyodide;
+		if (!pyo) {
+			throw new Error('asf');
+		}
+		return pyo;
+	}
+
+	static _castCaughtErrorToError(e: unknown): Error {
+		let err: Error;
+		if (typeof e === 'string') {
+			err = new Error(e);
+		} else if (e instanceof Error) {
+			err = e;
+		} else {
+			err = new Error(`(Unknown error type) ${e}`);
+		}
+		return err;
+	}
+}
+
+self.pyodideWorker = new PyodideWorker(self.postMessage, PYODIDE_INDEX_URL, MessageCallbacks);
+self.pyodideWorker.init();
+
+self.onmessage = self.pyodideWorker.handleWorkerMessage;
+
+// TODO Set onmessageerror event handler in worker.
+// REFERENCE Worker events: https://developer.mozilla.org/en-US/docs/Web/API/Worker#events
+// self.onmessageerror

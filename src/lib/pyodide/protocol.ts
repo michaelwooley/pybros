@@ -130,7 +130,8 @@ export interface IRunCompleteClientCmdPayload extends PyodideCmdDataPayload {
 	console_id: string;
 	id: string;
 	status: 'ok' | 'err'; // QUESTION Where do errors go???
-	returns: any; // TODO Pin this down...
+	returns?: any; // TODO Pin this down...
+	err?: Error;
 }
 
 export type IRunCompleteClientCmd = ClientCmdData<
@@ -143,8 +144,7 @@ export type IRunCompleteClientCmd = ClientCmdData<
  ****************************************************************/
 
 export interface IWorkerErrorClientCmdPayload extends PyodideCmdDataPayload {
-	status: 'ready' | 'failed';
-	err?: Error;
+	err: Error;
 }
 
 export type IWorkerErrorClientCmd = ClientCmdData<

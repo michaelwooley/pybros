@@ -1,35 +1,5 @@
 /**
- * Client interface for interacting with worker module
- *
- *
- * const pyodideWorker = new Worker("./build/webworker.js");
-
-const callbacks = {};
-
-pyodideWorker.onmessage = (event) => {
-  const { id, ...data } = event.data;
-  const onSuccess = callbacks[id];
-  delete callbacks[id];
-  onSuccess(data);
-};
-
-const asyncRun = (() => {
-  let id = 0; // identify a Promise
-  return (script, context) => {
-    // the id could be generated more carefully
-    id = (id + 1) % Number.MAX_SAFE_INTEGER;
-    return new Promise((onSuccess) => {
-      callbacks[id] = onSuccess;
-      pyodideWorker.postMessage({
-        ...context,
-        python: script,
-        id,
-      });
-    });
-  };
-})();
-
-export { asyncRun };
+ * Main thread interface for interacting with worker module
  */
 
 import {
@@ -47,7 +17,7 @@ import {
 } from './protocol';
 import PyodideWorker from './pyodide.worker?worker';
 
-export interface IPyodideOnMessageHandlerCallbacks {
+export interface IPyodideClientOnMessageCallbacks {
 	handleStartup?: (data: IStartupRunClientCmd, client: PyodideClient) => Promise<void>;
 	handleOutput?: (data: IOutputClientCmd, client: PyodideClient) => Promise<void>;
 	handleRunStart?: (data: IRunStartClientCmd, client: PyodideClient) => Promise<void>;
@@ -88,13 +58,8 @@ export class PyodidePostMessage {
 /**
  * Handle incoming messages from pyodide worker.
  */
-export class PyodideOnMessageHandler {
-	/**
-	 * Init the handler.
-	 *
-	 * @param pm Cmd handler. Included as an argument in various callbacks.
-	 */
-	constructor(public client: PyodideClient, public callbacks: IPyodideOnMessageHandlerCallbacks) {}
+export class PyodideMessageHandler {
+	constructor(public client: PyodideClient, public callbacks: IPyodideClientOnMessageCallbacks) {}
 
 	public async handleWorkerMessage(e: MessageEvent<IClientCmdsUnion>): Promise<void> {
 		const data = e.data;
@@ -116,7 +81,6 @@ export class PyodideOnMessageHandler {
 				return await this.handleWorkerError(data);
 			}
 			default: {
-				// return _exhaustiveCheck;
 				throw new Error(`Unknown ClientCmdData command: ${data}`);
 			}
 		}
@@ -124,40 +88,40 @@ export class PyodideOnMessageHandler {
 
 	private async handleStartup(data: IStartupRunClientCmd): Promise<void> {
 		const cb = this.callbacks.handleStartup || console.log;
-		cb(data, this.client);
+		await cb(data, this.client);
 	}
 
 	private async handleOutput(data: IOutputClientCmd): Promise<void> {
 		const cb = this.callbacks.handleOutput || console.log;
-		cb(data, this.client);
+		await cb(data, this.client);
 	}
 
 	private async handleRunStart(data: IRunStartClientCmd): Promise<void> {
 		const cb = this.callbacks.handleRunStart || console.log;
-		cb(data, this.client);
+		await cb(data, this.client);
 	}
 
 	private async handleRunComplete(data: IRunCompleteClientCmd): Promise<void> {
 		const cb = this.callbacks.handleRunComplete || console.log;
-		cb(data, this.client);
+		await cb(data, this.client);
 	}
 
 	private async handleWorkerError(data: IWorkerErrorClientCmd): Promise<void> {
 		const cb = this.callbacks.handleWorkerError || console.error;
-		cb(data, this.client);
+		await cb(data, this.client);
 	}
 }
 
 export class PyodideClient {
 	pm: PyodidePostMessage;
-	om: PyodideOnMessageHandler;
+	mh: PyodideMessageHandler;
 	worker: Worker;
 
-	constructor(callbacks: IPyodideOnMessageHandlerCallbacks) {
-		this.om = new PyodideOnMessageHandler(this, callbacks);
+	constructor(callbacks: IPyodideClientOnMessageCallbacks) {
+		this.mh = new PyodideMessageHandler(this, callbacks);
 
 		this.worker = new PyodideWorker();
-		this.worker.onmessage = this.om.handleWorkerMessage;
+		this.worker.onmessage = this.mh.handleWorkerMessage;
 
 		this.pm = new PyodidePostMessage(this.worker);
 	}
