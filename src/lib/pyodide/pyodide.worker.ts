@@ -1,6 +1,8 @@
+/* @vite-ignore */
 /// <reference no-default-lib="true"/>
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
+
 /**
  * Web worker running pyodide python repl.
  */
@@ -22,7 +24,7 @@ import {
 	type IStartupRunClientCmdPayload,
 	type IWorkerCmdsUnion,
 	type IWorkerErrorClientCmdPayload
-} from './protocol';
+} from '$lib/pyodide/protocol';
 
 type PyodideInterface = GetInsidePromise<ReturnType<typeof pyodideModule.loadPyodide>>;
 
@@ -42,7 +44,7 @@ interface IPyodideWorkerOnMessageCallbacks {
 class PyodideWorkerClient {
 	constructor(public postMessage: typeof globalThis.postMessage) {}
 	private _postMessage(data: IClientCmdsUnion): void {
-		this.postMessage(data);
+		self.postMessage(data);
 	}
 
 	public startup(payload: IStartupRunClientCmdPayload): void {
@@ -137,7 +139,7 @@ class PyodideWorker {
 			// stdin?: () => string; // TODO handle stdin here...see docstring
 		});
 
-		this.pyodide.loadPackagesFromImports;
+		// this.pyodide.loadPackagesFromImports;
 		// await self.pyodide.loadPackage(['numpy', 'pytz']);
 	}
 
@@ -216,9 +218,19 @@ class MessageCallbacks implements IMessageCallbacks {
 
 self.pyodideWorker = new PyodideWorker(self.postMessage, PYODIDE_INDEX_URL, MessageCallbacks);
 self.pyodideWorker.init();
-
-self.onmessage = self.pyodideWorker.handleWorkerMessage;
+// // hack to avoid overlay.ts's dom assumptions
+// self.HTMLElement = function () {
+// 	return {};
+// };
+// self.customElements = {
+// 	get() {
+// 		return [];
+// 	}
+// };
+self.onmessage = async (e) => self.pyodideWorker.handleWorkerMessage(e);
 
 // TODO Set onmessageerror event handler in worker.
 // REFERENCE Worker events: https://developer.mozilla.org/en-US/docs/Web/API/Worker#events
 // self.onmessageerror
+// for sourcemap
+console.log('pyodide.worker.js');
