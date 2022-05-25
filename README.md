@@ -36,6 +36,11 @@ Glues a lot of components together, particularly in the sveltekit/vite context:
 
 # Development
 
+> 😢 To develop with pyodide, you need to use **chromium**! See [vite#4586](https://github.com/vitejs/vite/issues/4586) and the [browser feature tracker](https://caniuse.com/mdn-api_worker_worker_ecmascript_modules).
+>
+> 🦊 In preview/prod mode, firefox should work fine.
+
+
 _In development, web workers will only work well/hot reload in chromium-based browsers!_ (Or, at least, firefox does not work.)
 
 To get started:
