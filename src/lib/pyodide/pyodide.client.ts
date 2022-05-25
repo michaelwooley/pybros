@@ -17,18 +17,18 @@ import {
 } from './protocol';
 import PyodideWorker from './pyodide.worker?worker';
 
-export interface IPyodideClientOnMessageCallbacks {
-	handleStartup?: (data: IStartupRunClientCmd, client: PyodideClient) => Promise<void>;
-	handleOutput?: (data: IOutputClientCmd, client: PyodideClient) => Promise<void>;
-	handleRunStart?: (data: IRunStartClientCmd, client: PyodideClient) => Promise<void>;
-	handleRunComplete?: (data: IRunCompleteClientCmd, client: PyodideClient) => Promise<void>;
-	handleWorkerError?: (data: IWorkerErrorClientCmd, client: PyodideClient) => Promise<void>;
+export interface IPyodideMainOnMessageCallbacks {
+	handleStartup?: (data: IStartupRunClientCmd, client: PyodideMain) => Promise<void>;
+	handleOutput?: (data: IOutputClientCmd, client: PyodideMain) => Promise<void>;
+	handleRunStart?: (data: IRunStartClientCmd, client: PyodideMain) => Promise<void>;
+	handleRunComplete?: (data: IRunCompleteClientCmd, client: PyodideMain) => Promise<void>;
+	handleWorkerError?: (data: IWorkerErrorClientCmd, client: PyodideMain) => Promise<void>;
 }
 
 /**
- * Submit outgoing requests to pyodide worker.
+ * Client: Send messages to worker.
  */
-export class PyodidePostMessage {
+export class PyodideMainClient {
 	constructor(public worker: Worker) {}
 
 	private _postMessage(data: IWorkerCmdsUnion): void {
@@ -56,10 +56,10 @@ export class PyodidePostMessage {
 }
 
 /**
- * Handle incoming messages from pyodide worker.
+ * Service: Handle incoming messages from pyodide worker.
  */
-export class PyodideMessageHandler {
-	constructor(public client: PyodideClient, public callbacks: IPyodideClientOnMessageCallbacks) {}
+export class PyodideMainService {
+	constructor(public client: PyodideMain, public callbacks: IPyodideMainOnMessageCallbacks) {}
 
 	public async handleWorkerMessage(e: MessageEvent<IClientCmdsUnion>): Promise<void> {
 		const data = e.data;
@@ -112,18 +112,18 @@ export class PyodideMessageHandler {
 	}
 }
 
-export class PyodideClient {
-	pm: PyodidePostMessage;
-	mh: PyodideMessageHandler;
+export class PyodideMain {
+	client: PyodideMainClient;
+	svc: PyodideMainService;
 	worker: Worker;
 
-	constructor(callbacks: IPyodideClientOnMessageCallbacks) {
-		this.mh = new PyodideMessageHandler(this, callbacks);
+	constructor(callbacks: IPyodideMainOnMessageCallbacks) {
+		this.svc = new PyodideMainService(this, callbacks);
 
 		this.worker = new PyodideWorker();
-		this.worker.onmessage = this.mh.handleWorkerMessage;
+		this.worker.onmessage = this.svc.handleWorkerMessage;
 
-		this.pm = new PyodidePostMessage(this.worker);
+		this.client = new PyodideMainClient(this.worker);
 	}
 
 	// async init() {}

@@ -36,7 +36,10 @@ interface IPyodideWorkerOnMessageCallbacks {
 	handleRestart?: (data: IRestartWorkerCmd, worker: PyodideWorker) => Promise<void>;
 }
 
-class PyodideWorkerPostMessage {
+/**
+ * Client: Dispatches messages to main thread.
+ */
+class PyodideWorkerClient {
 	constructor(public postMessage: typeof globalThis.postMessage) {}
 	private _postMessage(data: IClientCmdsUnion): void {
 		this.postMessage(data);
@@ -61,13 +64,16 @@ class PyodideWorkerPostMessage {
 	}
 }
 
-class PyodideWorkerMessageHandler {
+/**
+ * Service: Handles incoming messages from main thread.
+ */
+class PyodideWorkerService {
 	constructor(public worker: PyodideWorker, public callbacks: IPyodideWorkerOnMessageCallbacks) {}
 
 	public async handleWorkerMessage(e: MessageEvent<IWorkerCmdsUnion>): Promise<void> {
 		// Error case: Worker did not load pyodide.
 		if (this.worker.readyPromise == undefined) {
-			this.worker.pm.workerError({
+			this.worker.client.workerError({
 				err: new Error('Worker does not appear to be initialized. Cannot process request.')
 			});
 			return;
@@ -104,9 +110,12 @@ class PyodideWorkerMessageHandler {
 	}
 }
 
+/**
+ * Orchestrator: Handles client+service together.
+ */
 class PyodideWorker {
-	mh: PyodideWorkerMessageHandler;
-	pm: PyodideWorkerPostMessage;
+	svc: PyodideWorkerService;
+	client: PyodideWorkerClient;
 
 	pyodide?: PyodideInterface;
 	readyPromise?: Promise<void>;
@@ -116,15 +125,15 @@ class PyodideWorker {
 		public indexURL: string,
 		public callbacks: IPyodideWorkerOnMessageCallbacks
 	) {
-		this.pm = new PyodideWorkerPostMessage(postMessage);
-		this.mh = new PyodideWorkerMessageHandler(this, callbacks);
+		this.client = new PyodideWorkerClient(postMessage);
+		this.svc = new PyodideWorkerService(this, callbacks);
 	}
 
 	private async loadPyodideAndPackages(): Promise<void> {
 		this.pyodide = await pyodideModule.loadPyodide({
 			indexURL: this.indexURL,
-			stdout: (msg) => this.pm.output({ msg, stream: 'stdout' }),
-			stderr: (msg) => this.pm.output({ msg, stream: 'stderr' })
+			stdout: (msg) => this.client.output({ msg, stream: 'stdout' }),
+			stderr: (msg) => this.client.output({ msg, stream: 'stderr' })
 			// stdin?: () => string; // TODO handle stdin here...see docstring
 		});
 
@@ -134,12 +143,12 @@ class PyodideWorker {
 
 	init(): void {
 		this.readyPromise = this.loadPyodideAndPackages()
-			.then(() => this.pm.startup({ status: 'ready' }))
-			.catch((err) => this.pm.startup({ status: 'failed', err }));
+			.then(() => this.client.startup({ status: 'ready' }))
+			.catch((err) => this.client.startup({ status: 'failed', err }));
 	}
 
 	get handleWorkerMessage(): (e: MessageEvent<IWorkerCmdsUnion>) => Promise<void> {
-		return this.mh.handleWorkerMessage;
+		return this.svc.handleWorkerMessage;
 	}
 }
 
@@ -156,17 +165,17 @@ class MessageCallbacks implements IMessageCallbacks {
 		const pyo = MessageCallbacks._getPyo(w);
 		const { code, id, console_id } = data.payload;
 
-		w.pm.runStart({ id, console_id });
+		w.client.runStart({ id, console_id });
 
 		try {
 			await pyo.loadPackagesFromImports(data.payload.code);
 			const returns = await pyo.runPythonAsync(code, {});
-			w.pm.runComplete({ id, console_id, returns, status: 'ok' });
+			w.client.runComplete({ id, console_id, returns, status: 'ok' });
 		} catch (e) {
 			console.error('Error in python run: ', e);
 			const err = MessageCallbacks._castCaughtErrorToError(e);
 
-			w.pm.runComplete({ id, console_id, err, status: 'err' });
+			w.client.runComplete({ id, console_id, err, status: 'err' });
 		}
 	}
 
@@ -200,6 +209,10 @@ class MessageCallbacks implements IMessageCallbacks {
 		return err;
 	}
 }
+
+/**
+ * MAIN
+ */
 
 self.pyodideWorker = new PyodideWorker(self.postMessage, PYODIDE_INDEX_URL, MessageCallbacks);
 self.pyodideWorker.init();
