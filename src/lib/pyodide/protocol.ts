@@ -4,20 +4,16 @@
 
 // import type { TypedArray } from 'pyodide';
 
-// TODO Remove if unnecessary
-// const workerCmdSymbol: unique symbol = Symbol('workerCmdSymbol');
-// const clientCmdSymbol: unique symbol = Symbol();
-
 /**
  * Commands recieved BY worker FROM client.
  */
 export enum WorkerCmdEnum {
-	RUN_CMD = 'RUN_CMD', // Run a python command
+	RUN_CMD, // Run a python command
 	// RUN_SCRIPT, // TODO Run a python script (work out FS, etc.)
 	// LOAD_PACKAGE, // Load a py package from... (work out details of pypi v. pkg w/ c bindings.)
 	// LIST_PACKAGES, // List packages active/available in env.
 	// VIEW_ENV, // List active objects in env.
-	RESTART = 'RESTART' // Restart/reset the python console
+	RESTART // Restart/reset the python console
 	// ADD_CONSOLE, // Add console, returning ID
 	// REMOVE_CONSOLE, // Remove console by ID
 }
@@ -43,9 +39,7 @@ export interface PyodideCmdDataPayload {}
 
 interface PyodideCmdData<C extends number, P extends PyodideCmdDataPayload> {
 	// readonly sym: unique symbol;
-
 	cmd: C;
-
 	payload: P;
 }
 
@@ -53,41 +47,50 @@ interface PyodideCmdData<C extends number, P extends PyodideCmdDataPayload> {
 //  WORKER COMMANDS
 // ////////////////////////////////////////
 
-export abstract class WorkerCmdData<P extends PyodideCmdDataPayload>
-	implements PyodideCmdData<WorkerCmdEnum, P>
-{
-	static readonly sym: unique symbol = Symbol();
-	public abstract cmd: WorkerCmdEnum;
-	constructor(public payload: P) {}
-}
-
-export const workerCmdSymbol = WorkerCmdData.sym;
+// export abstract class WorkerCmdData<P extends PyodideCmdDataPayload>
+// 	implements PyodideCmdData<WorkerCmdEnum, P>
+// {
+// 	static readonly sym: unique symbol = Symbol();
+// 	public abstract cmd: WorkerCmdEnum;
+// 	constructor(public payload: P) {}
+// }
+//
+// export const workerCmdSymbol = WorkerCmdData.sym;
+export type WorkerCmdData<
+	C extends WorkerCmdEnum,
+	P extends PyodideCmdDataPayload
+> = PyodideCmdData<C, P>;
 
 /****************************************************************
  * RUN_CMD
  ****************************************************************/
-export interface RunCmdWorkerCmdPayload extends PyodideCmdDataPayload {
+export interface IRunCmdWorkerCmdPayload extends PyodideCmdDataPayload {
 	console_id: string;
 	id: string;
 	code: string;
 	// context: Record<string, any>;
 }
 
-export class RunCmdWorkerCmd extends WorkerCmdData<RunCmdWorkerCmdPayload> {
-	public cmd: WorkerCmdEnum = WorkerCmdEnum.RUN_CMD;
-}
+// export class RunCmdWorkerCmd extends WorkerCmdData<RunCmdWorkerCmdPayload> {
+// 	public cmd: WorkerCmdEnum = WorkerCmdEnum.RUN_CMD;
+// }
+export type RunCmdWorkerCmd = WorkerCmdData<WorkerCmdEnum.RUN_CMD, IRunCmdWorkerCmdPayload>;
 
 /****************************************************************
  * RESTART
  ****************************************************************/
 
-export interface RestartWorkerCmdPayload extends PyodideCmdDataPayload {
-	console_id: string;
+export interface IRestartWorkerCmdPayload extends PyodideCmdDataPayload {
+	console_id?: string; // TODO Make non-optional once have multiple consoles
 }
 
-export class RestartWorkerCmd extends WorkerCmdData<RestartWorkerCmdPayload> {
-	public cmd: WorkerCmdEnum = WorkerCmdEnum.RESTART;
-}
+// export class RestartWorkerCmd extends WorkerCmdData<RestartWorkerCmdPayload> {
+// 	public cmd: WorkerCmdEnum = WorkerCmdEnum.RESTART;
+// }
+
+export type RestartWorkerCmd = WorkerCmdData<WorkerCmdEnum.RESTART, IRestartWorkerCmdPayload>;
+
+export type TWorkerCmds = RunCmdWorkerCmd | RestartWorkerCmd;
 
 // ////////////////////////////////////////
 //  CLIENT COMMANDS
@@ -97,121 +100,75 @@ export type ClientCmdData<
 	C extends ClientCmdEnum,
 	P extends PyodideCmdDataPayload
 > = PyodideCmdData<C, P>;
-// export interface ClientCmdData<C extends ClientCmdEnum, P extends PyodideCmdDataPayload>
-// 	extends PyodideCmdData<C, P> {
-// 	// cmd: ClientCmdEnum;
-// 	// payload: P;
-// }
-
-// export abstract class ClientCmdData<P extends PyodideCmdDataPayload>
-// 	implements PyodideCmdData<ClientCmdEnum, P>
-// {
-// 	static readonly sym: unique symbol = Symbol();
-// 	public abstract cmd: ClientCmdEnum;
-// 	constructor(public payload: P) {}
-// }
-
-// export const clientCmdSymbol = ClientCmdData.sym;
 
 /****************************************************************
  * STARTUP
  ****************************************************************/
 
-export interface StartupRunClientCmdPayload extends PyodideCmdDataPayload {
+export interface IStartupRunClientCmdPayload extends PyodideCmdDataPayload {
 	status: 'ready' | 'failed';
 	err?: Error;
 	// console_id: string;
 	// interruptBuffer: TypedArray;
 }
 
-// export class StartupRunClientCmd extends ClientCmdData<StartupRunClientCmdPayload> {
-// 	public cmd: ClientCmdEnum = ClientCmdEnum.STARTUP;
-// 	constructor(public payload: StartupRunClientCmdPayload) {
-// 		super(payload);
-// 	}
-// }
-export type StartupRunClientCmd = ClientCmdData<ClientCmdEnum.STARTUP, StartupRunClientCmdPayload>;
+export type StartupRunClientCmd = ClientCmdData<ClientCmdEnum.STARTUP, IStartupRunClientCmdPayload>;
 
 /****************************************************************
  * OUTPUT
  ****************************************************************/
 
-export interface OutputClientCmdPayload extends PyodideCmdDataPayload {
+export interface IOutputClientCmdPayload extends PyodideCmdDataPayload {
 	stream: 'stdout' | 'stderr';
 	msg: string;
 }
 
-// export class OutputClientCmd extends ClientCmdData<OutputClientCmdPayload> {
-// 	public cmd: ClientCmdEnum = ClientCmdEnum.OUTPUT;
-// 	// payload: OutputClientCmdPayload;
-// 	constructor(public payload: OutputClientCmdPayload) {
-// 		super(payload);
-// 	}
-// }
-
-export type OutputClientCmd = ClientCmdData<ClientCmdEnum.OUTPUT, OutputClientCmdPayload>;
+export type OutputClientCmd = ClientCmdData<ClientCmdEnum.OUTPUT, IOutputClientCmdPayload>;
 
 /****************************************************************
  * RUN_START
  ****************************************************************/
 
-export interface RunStartClientCmdPayload extends PyodideCmdDataPayload {
+export interface IRunStartClientCmdPayload extends PyodideCmdDataPayload {
 	console_id: string;
 	id: string;
 }
 
-// export class RunStartClientCmd extends ClientCmdData<RunStartClientCmdPayload> {
-// 	public cmd: ClientCmdEnum = ClientCmdEnum.RUN_START;
-// }
-export type RunStartClientCmd = ClientCmdData<ClientCmdEnum.RUN_START, RunStartClientCmdPayload>;
+export type RunStartClientCmd = ClientCmdData<ClientCmdEnum.RUN_START, IRunStartClientCmdPayload>;
 
 /****************************************************************
  * RUN_COMPLETE
  ****************************************************************/
 
-export interface RunCompleteClientCmdPayload extends PyodideCmdDataPayload {
+export interface IRunCompleteClientCmdPayload extends PyodideCmdDataPayload {
 	console_id: string;
 	id: string;
 	status: 'ok' | 'err'; // QUESTION Where do errors go???
 	returns: any; // TODO Pin this down...
 }
 
-// export class RunCompleteClientCmd extends ClientCmdData<RunCompleteClientCmdPayload> {
-// 	public cmd: ClientCmdEnum = ClientCmdEnum.RUN_COMPLETE;
-// }
-
 export type RunCompleteClientCmd = ClientCmdData<
 	ClientCmdEnum.RUN_COMPLETE,
-	RunCompleteClientCmdPayload
+	IRunCompleteClientCmdPayload
 >;
 
 /****************************************************************
  * WORKER_ERROR
  ****************************************************************/
 
-export interface WorkerErrorClientCmdPayload extends PyodideCmdDataPayload {
+export interface IWorkerErrorClientCmdPayload extends PyodideCmdDataPayload {
 	status: 'ready' | 'failed';
 	err?: Error;
 }
 
-// export class WorkerErrorClientCmd extends ClientCmdData<WorkerErrorClientCmdPayload> {
-// 	public cmd: ClientCmdEnum = ClientCmdEnum.WORKER_ERROR;
-// }
-
 export type WorkerErrorClientCmd = ClientCmdData<
 	ClientCmdEnum.WORKER_ERROR,
-	WorkerErrorClientCmdPayload
+	IWorkerErrorClientCmdPayload
 >;
 
 export type TClientCmds =
-	| RunStartClientCmd
 	| StartupRunClientCmd
+	| OutputClientCmd
+	| RunStartClientCmd
 	| RunCompleteClientCmd
-	| WorkerErrorClientCmd
-	| OutputClientCmd;
-
-// TODO Remove
-// const a = new WorkerErrorClientCmd({ status: 'ready' });
-// if (a instanceof ClientCmdData) {
-// 	null;
-// }
+	| WorkerErrorClientCmd;
