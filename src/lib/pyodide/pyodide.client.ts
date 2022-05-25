@@ -37,22 +37,22 @@ import {
 	WorkerCmdEnum,
 	type IRestartWorkerCmdPayload,
 	type IRunCmdWorkerCmdPayload,
-	type OutputClientCmd,
-	type RunCompleteClientCmd,
-	type RunStartClientCmd,
-	type StartupRunClientCmd,
-	type TClientCmds,
-	type TWorkerCmds,
-	type WorkerErrorClientCmd
+	type IOutputClientCmd,
+	type IRunCompleteClientCmd,
+	type IRunStartClientCmd,
+	type IStartupRunClientCmd,
+	type IClientCmdsUnion,
+	type IWorkerCmdsUnion,
+	type IWorkerErrorClientCmd
 } from './protocol';
 import PyodideWorker from './pyodide.worker?worker';
 
 export interface IPyodideOnMessageHandlerCallbacks {
-	handleStartup?: (data: StartupRunClientCmd, client: PyodideClient) => Promise<void>;
-	handleOutput?: (data: OutputClientCmd, client: PyodideClient) => Promise<void>;
-	handleRunStart?: (data: RunStartClientCmd, client: PyodideClient) => Promise<void>;
-	handleRunComplete?: (data: RunCompleteClientCmd, client: PyodideClient) => Promise<void>;
-	handleWorkerError?: (data: WorkerErrorClientCmd, client: PyodideClient) => Promise<void>;
+	handleStartup?: (data: IStartupRunClientCmd, client: PyodideClient) => Promise<void>;
+	handleOutput?: (data: IOutputClientCmd, client: PyodideClient) => Promise<void>;
+	handleRunStart?: (data: IRunStartClientCmd, client: PyodideClient) => Promise<void>;
+	handleRunComplete?: (data: IRunCompleteClientCmd, client: PyodideClient) => Promise<void>;
+	handleWorkerError?: (data: IWorkerErrorClientCmd, client: PyodideClient) => Promise<void>;
 }
 
 /**
@@ -61,7 +61,7 @@ export interface IPyodideOnMessageHandlerCallbacks {
 export class PyodidePostMessage {
 	constructor(public worker: Worker) {}
 
-	private _postMessage(data: TWorkerCmds): void {
+	private _postMessage(data: IWorkerCmdsUnion): void {
 		// if (!this.worker) {
 		// 	// QUESTION Want to add a pre-worker command buffer instead of an error here? Will
 		// 	// call all postMessage once worker is set.
@@ -96,7 +96,7 @@ export class PyodideOnMessageHandler {
 	 */
 	constructor(public client: PyodideClient, public callbacks: IPyodideOnMessageHandlerCallbacks) {}
 
-	public async handleWorkerMessage(e: MessageEvent<TClientCmds>): Promise<void> {
+	public async handleWorkerMessage(e: MessageEvent<IClientCmdsUnion>): Promise<void> {
 		const data = e.data;
 
 		switch (data.cmd) {
@@ -122,27 +122,27 @@ export class PyodideOnMessageHandler {
 		}
 	}
 
-	private async handleStartup(data: StartupRunClientCmd): Promise<void> {
+	private async handleStartup(data: IStartupRunClientCmd): Promise<void> {
 		const cb = this.callbacks.handleStartup || console.log;
 		cb(data, this.client);
 	}
 
-	private async handleOutput(data: OutputClientCmd): Promise<void> {
+	private async handleOutput(data: IOutputClientCmd): Promise<void> {
 		const cb = this.callbacks.handleOutput || console.log;
 		cb(data, this.client);
 	}
 
-	private async handleRunStart(data: RunStartClientCmd): Promise<void> {
+	private async handleRunStart(data: IRunStartClientCmd): Promise<void> {
 		const cb = this.callbacks.handleRunStart || console.log;
 		cb(data, this.client);
 	}
 
-	private async handleRunComplete(data: RunCompleteClientCmd): Promise<void> {
+	private async handleRunComplete(data: IRunCompleteClientCmd): Promise<void> {
 		const cb = this.callbacks.handleRunComplete || console.log;
 		cb(data, this.client);
 	}
 
-	private async handleWorkerError(data: WorkerErrorClientCmd): Promise<void> {
+	private async handleWorkerError(data: IWorkerErrorClientCmd): Promise<void> {
 		const cb = this.callbacks.handleWorkerError || console.error;
 		cb(data, this.client);
 	}

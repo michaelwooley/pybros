@@ -38,7 +38,6 @@ export enum ClientCmdEnum {
 export interface PyodideCmdDataPayload {}
 
 interface PyodideCmdData<C extends number, P extends PyodideCmdDataPayload> {
-	// readonly sym: unique symbol;
 	cmd: C;
 	payload: P;
 }
@@ -62,7 +61,7 @@ export interface IRunCmdWorkerCmdPayload extends PyodideCmdDataPayload {
 	// context: Record<string, any>;
 }
 
-export type RunCmdWorkerCmd = WorkerCmdData<WorkerCmdEnum.RUN_CMD, IRunCmdWorkerCmdPayload>;
+export type IRunCmdWorkerCmd = WorkerCmdData<WorkerCmdEnum.RUN_CMD, IRunCmdWorkerCmdPayload>;
 
 /****************************************************************
  * RESTART
@@ -72,9 +71,9 @@ export interface IRestartWorkerCmdPayload extends PyodideCmdDataPayload {
 	console_id?: string; // TODO Make non-optional once have multiple consoles
 }
 
-export type RestartWorkerCmd = WorkerCmdData<WorkerCmdEnum.RESTART, IRestartWorkerCmdPayload>;
+export type IRestartWorkerCmd = WorkerCmdData<WorkerCmdEnum.RESTART, IRestartWorkerCmdPayload>;
 
-export type TWorkerCmds = RunCmdWorkerCmd | RestartWorkerCmd;
+export type IWorkerCmdsUnion = IRunCmdWorkerCmd | IRestartWorkerCmd;
 
 // ////////////////////////////////////////
 //  CLIENT COMMANDS
@@ -96,7 +95,10 @@ export interface IStartupRunClientCmdPayload extends PyodideCmdDataPayload {
 	// interruptBuffer: TypedArray;
 }
 
-export type StartupRunClientCmd = ClientCmdData<ClientCmdEnum.STARTUP, IStartupRunClientCmdPayload>;
+export type IStartupRunClientCmd = ClientCmdData<
+	ClientCmdEnum.STARTUP,
+	IStartupRunClientCmdPayload
+>;
 
 /****************************************************************
  * OUTPUT
@@ -107,7 +109,7 @@ export interface IOutputClientCmdPayload extends PyodideCmdDataPayload {
 	msg: string;
 }
 
-export type OutputClientCmd = ClientCmdData<ClientCmdEnum.OUTPUT, IOutputClientCmdPayload>;
+export type IOutputClientCmd = ClientCmdData<ClientCmdEnum.OUTPUT, IOutputClientCmdPayload>;
 
 /****************************************************************
  * RUN_START
@@ -118,7 +120,7 @@ export interface IRunStartClientCmdPayload extends PyodideCmdDataPayload {
 	id: string;
 }
 
-export type RunStartClientCmd = ClientCmdData<ClientCmdEnum.RUN_START, IRunStartClientCmdPayload>;
+export type IRunStartClientCmd = ClientCmdData<ClientCmdEnum.RUN_START, IRunStartClientCmdPayload>;
 
 /****************************************************************
  * RUN_COMPLETE
@@ -131,7 +133,7 @@ export interface IRunCompleteClientCmdPayload extends PyodideCmdDataPayload {
 	returns: any; // TODO Pin this down...
 }
 
-export type RunCompleteClientCmd = ClientCmdData<
+export type IRunCompleteClientCmd = ClientCmdData<
 	ClientCmdEnum.RUN_COMPLETE,
 	IRunCompleteClientCmdPayload
 >;
@@ -145,14 +147,14 @@ export interface IWorkerErrorClientCmdPayload extends PyodideCmdDataPayload {
 	err?: Error;
 }
 
-export type WorkerErrorClientCmd = ClientCmdData<
+export type IWorkerErrorClientCmd = ClientCmdData<
 	ClientCmdEnum.WORKER_ERROR,
 	IWorkerErrorClientCmdPayload
 >;
 
-export type TClientCmds =
-	| StartupRunClientCmd
-	| OutputClientCmd
-	| RunStartClientCmd
-	| RunCompleteClientCmd
-	| WorkerErrorClientCmd;
+export type IClientCmdsUnion =
+	| IStartupRunClientCmd
+	| IOutputClientCmd
+	| IRunStartClientCmd
+	| IRunCompleteClientCmd
+	| IWorkerErrorClientCmd;
