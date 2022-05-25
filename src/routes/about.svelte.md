@@ -32,7 +32,6 @@ title: About
 
 ---
 
-
 _**Main idea:** Create a static site that supports collaborative python programming (i.e. [replit](https://replit.com/) without the server)._
 
 ---
@@ -47,7 +46,6 @@ Implementation path w/ progress:
 - [x] Add CRDT/collaboration with [yjs](https://docs.yjs.dev/)
 - [x] Add webrtc hookups for yjs/collaboration on _editor code_
 - [ ] Add CRDT validation of python editor output/state.
-
 
 # Acknowledgements
 

@@ -47,15 +47,6 @@ interface PyodideCmdData<C extends number, P extends PyodideCmdDataPayload> {
 //  WORKER COMMANDS
 // ////////////////////////////////////////
 
-// export abstract class WorkerCmdData<P extends PyodideCmdDataPayload>
-// 	implements PyodideCmdData<WorkerCmdEnum, P>
-// {
-// 	static readonly sym: unique symbol = Symbol();
-// 	public abstract cmd: WorkerCmdEnum;
-// 	constructor(public payload: P) {}
-// }
-//
-// export const workerCmdSymbol = WorkerCmdData.sym;
 export type WorkerCmdData<
 	C extends WorkerCmdEnum,
 	P extends PyodideCmdDataPayload
@@ -71,9 +62,6 @@ export interface IRunCmdWorkerCmdPayload extends PyodideCmdDataPayload {
 	// context: Record<string, any>;
 }
 
-// export class RunCmdWorkerCmd extends WorkerCmdData<RunCmdWorkerCmdPayload> {
-// 	public cmd: WorkerCmdEnum = WorkerCmdEnum.RUN_CMD;
-// }
 export type RunCmdWorkerCmd = WorkerCmdData<WorkerCmdEnum.RUN_CMD, IRunCmdWorkerCmdPayload>;
 
 /****************************************************************
@@ -83,10 +71,6 @@ export type RunCmdWorkerCmd = WorkerCmdData<WorkerCmdEnum.RUN_CMD, IRunCmdWorker
 export interface IRestartWorkerCmdPayload extends PyodideCmdDataPayload {
 	console_id?: string; // TODO Make non-optional once have multiple consoles
 }
-
-// export class RestartWorkerCmd extends WorkerCmdData<RestartWorkerCmdPayload> {
-// 	public cmd: WorkerCmdEnum = WorkerCmdEnum.RESTART;
-// }
 
 export type RestartWorkerCmd = WorkerCmdData<WorkerCmdEnum.RESTART, IRestartWorkerCmdPayload>;
 

@@ -17,7 +17,9 @@ MVP Implementation path w/ progress:
 - [x] Add nice editor (monaco, codemirror, etc.)
 - [x] Add CRDT/collaboration with [yjs](https://docs.yjs.dev/)
 - [x] Add webrtc hookups for yjs/collaboration on _editor code_
-- [ ] ~~~Add CRDT validation of python editor output/state.~~~ (Not an MVP element)
+- [ ] ```Add CRDT validation of python editor output/state.~~~ (Not an MVP element)
+
+      ```
 - [ ] Deploy to github pages (truly static)
 
 # Features
