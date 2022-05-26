@@ -6,6 +6,7 @@ import { resolve } from 'path';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
+	compilerOptions: {},
 	extensions: ['.svelte', ...mdsvexConfig.extensions],
 
 	// Consult https://github.com/sveltejs/svelte-preprocess
@@ -27,6 +28,8 @@ const config = {
 			allowed: ['PATCH', 'DELETE']
 		},
 
+		// inlineStyleThreshold: -1,
+
 		vite: {
 			resolve: {
 				alias: {
@@ -43,9 +46,7 @@ const config = {
 					}
 				}
 			},
-			build: {
-				assetsInlineLimit: 0
-			},
+
 			server: {
 				headers: {
 					// Needed to allow SharedArrayBuffer to squeak through on some browsers....
@@ -54,8 +55,13 @@ const config = {
 					'Cross-Origin-Embedder-Policy': 'require-corp'
 				}
 			},
+
 			worker: {
-				format: 'es'
+				format: 'iife',
+				rollupOptions: {
+					inlineDynamicImports: true,
+					treeshake: true
+				}
 			}
 		}
 	}
