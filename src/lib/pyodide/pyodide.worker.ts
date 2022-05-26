@@ -8,225 +8,226 @@
 import { PYODIDE_INDEX_URL } from '$lib/constants';
 import type { loadPyodide as TLoadPyodideFunction } from 'pyodide/pyodide.d';
 import {
-	ClientCmdEnum,
-	WorkerCmdEnum,
-	type IClientCmdsUnion,
-	type IOutputClientCmdPayload,
-	type IRestartWorkerCmd,
-	type IRunCmdWorkerCmd,
-	type IRunCompleteClientCmdPayload,
-	type IRunStartClientCmdPayload,
-	type IStartupRunClientCmdPayload,
-	type IWorkerCmdsUnion,
-	type IWorkerErrorClientCmdPayload
+    ClientCmdEnum,
+    WorkerCmdEnum,
+    type IClientCmdsUnion,
+    type IOutputClientCmdPayload,
+    type IRestartWorkerCmd,
+    type IRunCmdWorkerCmd,
+    type IRunCompleteClientCmdPayload,
+    type IRunStartClientCmdPayload,
+    type IStartupRunClientCmdPayload,
+    type IWorkerCmdsUnion,
+    type IWorkerErrorClientCmdPayload
 } from '$lib/pyodide/protocol';
 
 type PyodideInterface = GetInsidePromise<ReturnType<typeof TLoadPyodideFunction>>;
 
 declare global {
-	// eslint-disable-next-line no-var
-	var pyodideWorker: PyodideWorker;
-	// eslint-disable-next-line no-var
-	var loadPyodide: typeof TLoadPyodideFunction | undefined;
+    // eslint-disable-next-line no-var
+    var pyodideWorker: PyodideWorker;
+    // eslint-disable-next-line no-var
+    var loadPyodide: typeof TLoadPyodideFunction | undefined;
 }
 
 const loadLoadPyodide = async (): Promise<typeof TLoadPyodideFunction> => {
-	let lp: typeof TLoadPyodideFunction;
+    let lp: typeof TLoadPyodideFunction;
 
-	// XXX In dev mode, we have to use..eval.
-	if (import.meta.env.DEV) {
-		const moduleString = await (await import('pyodide/pyodide.js?raw')).default;
-		eval(moduleString);
+    // XXX In dev mode, we have to use..eval.
+    // TODO #37 Remove pyodide.js dev mode import hack 🤦
+    if (import.meta.env.DEV) {
+        const moduleString = await (await import('pyodide/pyodide.js?raw')).default;
+        eval(moduleString);
 
-		if (globalThis['loadPyodide'] == undefined) {
-			throw new Error('sf');
-		}
-		lp = globalThis['loadPyodide']; // as unknown as typeof TLoadPyodideFunction;
-	} else {
-		console.log('Prod mode: Loading pyodide correctly...');
-		lp = await (await import('pyodide/pyodide.js')).loadPyodide;
-	}
-	return lp;
+        if (globalThis['loadPyodide'] == undefined) {
+            throw new Error('sf');
+        }
+        lp = globalThis['loadPyodide']; // as unknown as typeof TLoadPyodideFunction;
+    } else {
+        console.log('Prod mode: Loading pyodide correctly...');
+        lp = await (await import('pyodide/pyodide.js')).loadPyodide;
+    }
+    return lp;
 };
 
 interface IPyodideWorkerOnMessageCallbacks {
-	handleRunCmd?: (data: IRunCmdWorkerCmd, worker: PyodideWorker) => Promise<void>;
-	handleRestart?: (data: IRestartWorkerCmd, worker: PyodideWorker) => Promise<void>;
+    handleRunCmd?: (data: IRunCmdWorkerCmd, worker: PyodideWorker) => Promise<void>;
+    handleRestart?: (data: IRestartWorkerCmd, worker: PyodideWorker) => Promise<void>;
 }
 
 /**
  * Client: Dispatches messages to main thread.
  */
 class PyodideWorkerClient {
-	constructor(public postMessage: typeof globalThis.postMessage) {}
-	private _postMessage(data: IClientCmdsUnion): void {
-		self.postMessage(data);
-	}
+    constructor(public postMessage: typeof globalThis.postMessage) {}
+    private _postMessage(data: IClientCmdsUnion): void {
+        self.postMessage(data);
+    }
 
-	public startup(payload: IStartupRunClientCmdPayload): void {
-		this._postMessage({ cmd: ClientCmdEnum.STARTUP, payload });
-	}
+    public startup(payload: IStartupRunClientCmdPayload): void {
+        this._postMessage({ cmd: ClientCmdEnum.STARTUP, payload });
+    }
 
-	public output(payload: IOutputClientCmdPayload): void {
-		this._postMessage({ cmd: ClientCmdEnum.OUTPUT, payload });
-	}
+    public output(payload: IOutputClientCmdPayload): void {
+        this._postMessage({ cmd: ClientCmdEnum.OUTPUT, payload });
+    }
 
-	public runStart(payload: IRunStartClientCmdPayload): void {
-		this._postMessage({ cmd: ClientCmdEnum.RUN_START, payload });
-	}
-	public runComplete(payload: IRunCompleteClientCmdPayload): void {
-		this._postMessage({ cmd: ClientCmdEnum.RUN_COMPLETE, payload });
-	}
-	public workerError(payload: IWorkerErrorClientCmdPayload): void {
-		this._postMessage({ cmd: ClientCmdEnum.WORKER_ERROR, payload });
-	}
+    public runStart(payload: IRunStartClientCmdPayload): void {
+        this._postMessage({ cmd: ClientCmdEnum.RUN_START, payload });
+    }
+    public runComplete(payload: IRunCompleteClientCmdPayload): void {
+        this._postMessage({ cmd: ClientCmdEnum.RUN_COMPLETE, payload });
+    }
+    public workerError(payload: IWorkerErrorClientCmdPayload): void {
+        this._postMessage({ cmd: ClientCmdEnum.WORKER_ERROR, payload });
+    }
 }
 
 /**
  * Service: Handles incoming messages from main thread.
  */
 class PyodideWorkerService {
-	constructor(public worker: PyodideWorker, public callbacks: IPyodideWorkerOnMessageCallbacks) {}
+    constructor(public worker: PyodideWorker, public callbacks: IPyodideWorkerOnMessageCallbacks) {}
 
-	public async handleWorkerMessage(e: MessageEvent<IWorkerCmdsUnion>): Promise<void> {
-		// Error case: Worker did not load pyodide.
-		if (this.worker.readyPromise == undefined) {
-			this.worker.client.workerError({
-				err: new Error('Worker does not appear to be initialized. Cannot process request.')
-			});
-			return;
-		}
+    public async handleWorkerMessage(e: MessageEvent<IWorkerCmdsUnion>): Promise<void> {
+        // Error case: Worker did not load pyodide.
+        if (this.worker.readyPromise == undefined) {
+            this.worker.client.workerError({
+                err: new Error('Worker does not appear to be initialized. Cannot process request.')
+            });
+            return;
+        }
 
-		// Wait until the worker is ready to process the request.
-		await this.worker.readyPromise;
-		// NOTE We don't do python context from JS here...
+        // Wait until the worker is ready to process the request.
+        await this.worker.readyPromise;
+        // NOTE We don't do python context from JS here...
 
-		// Extract request data.
-		const data = e.data;
+        // Extract request data.
+        const data = e.data;
 
-		switch (data.cmd) {
-			case WorkerCmdEnum.RUN_CMD: {
-				return await this.handleRunCmd(data);
-			}
-			case WorkerCmdEnum.RESTART: {
-				return await this.handleRestart(data);
-			}
-			default: {
-				throw new Error(`Unknown WorkerCmdData command: ${data}`);
-			}
-		}
-	}
+        switch (data.cmd) {
+            case WorkerCmdEnum.RUN_CMD: {
+                return await this.handleRunCmd(data);
+            }
+            case WorkerCmdEnum.RESTART: {
+                return await this.handleRestart(data);
+            }
+            default: {
+                throw new Error(`Unknown WorkerCmdData command: ${data}`);
+            }
+        }
+    }
 
-	private async handleRunCmd(data: IRunCmdWorkerCmd): Promise<void> {
-		const cb = this.callbacks.handleRunCmd || console.log;
-		await cb(data, this.worker);
-	}
+    private async handleRunCmd(data: IRunCmdWorkerCmd): Promise<void> {
+        const cb = this.callbacks.handleRunCmd || console.log;
+        await cb(data, this.worker);
+    }
 
-	private async handleRestart(data: IRestartWorkerCmd): Promise<void> {
-		const cb = this.callbacks.handleRestart || (() => console.error('asf'));
-		await cb(data, this.worker);
-	}
+    private async handleRestart(data: IRestartWorkerCmd): Promise<void> {
+        const cb = this.callbacks.handleRestart || (() => console.error('asf'));
+        await cb(data, this.worker);
+    }
 }
 
 /**
  * Orchestrator: Handles client+service together.
  */
 class PyodideWorker {
-	svc: PyodideWorkerService;
-	client: PyodideWorkerClient;
+    svc: PyodideWorkerService;
+    client: PyodideWorkerClient;
 
-	pyodide?: PyodideInterface;
-	readyPromise?: Promise<void>;
+    pyodide?: PyodideInterface;
+    readyPromise?: Promise<void>;
 
-	constructor(
-		public postMessage: typeof globalThis.postMessage,
-		public indexURL: string,
-		public callbacks: IPyodideWorkerOnMessageCallbacks
-	) {
-		this.client = new PyodideWorkerClient(postMessage);
-		this.svc = new PyodideWorkerService(this, callbacks);
-	}
+    constructor(
+        public postMessage: typeof globalThis.postMessage,
+        public indexURL: string,
+        public callbacks: IPyodideWorkerOnMessageCallbacks
+    ) {
+        this.client = new PyodideWorkerClient(postMessage);
+        this.svc = new PyodideWorkerService(this, callbacks);
+    }
 
-	private async loadPyodideAndPackages(): Promise<void> {
-		const loadPyodide = await loadLoadPyodide();
-		this.pyodide = await loadPyodide({
-			indexURL: this.indexURL,
-			stdout: (msg) => this.client.output({ msg, stream: 'stdout' }),
-			stderr: (msg) => this.client.output({ msg, stream: 'stderr' })
-			// stdin?: () => string; // TODO handle stdin here...see docstring
-		});
+    private async loadPyodideAndPackages(): Promise<void> {
+        const loadPyodide = await loadLoadPyodide();
+        this.pyodide = await loadPyodide({
+            indexURL: this.indexURL,
+            stdout: (msg) => this.client.output({ msg, stream: 'stdout' }),
+            stderr: (msg) => this.client.output({ msg, stream: 'stderr' })
+            // stdin?: () => string; // TODO handle stdin here...see docstring
+        });
 
-		// this.pyodide.loadPackagesFromImports;
-		// await self.pyodide.loadPackage(['numpy', 'pytz']);
-	}
+        // this.pyodide.loadPackagesFromImports;
+        // await self.pyodide.loadPackage(['numpy', 'pytz']);
+    }
 
-	init(): void {
-		this.readyPromise = this.loadPyodideAndPackages()
-			.then(() => this.client.startup({ status: 'ready' }))
-			.catch((err) => this.client.startup({ status: 'failed', err }));
-	}
+    init(): void {
+        this.readyPromise = this.loadPyodideAndPackages()
+            .then(() => this.client.startup({ status: 'ready' }))
+            .catch((err) => this.client.startup({ status: 'failed', err }));
+    }
 
-	get handleWorkerMessage(): (e: MessageEvent<IWorkerCmdsUnion>) => Promise<void> {
-		return this.svc.handleWorkerMessage;
-	}
+    get handleWorkerMessage(): (e: MessageEvent<IWorkerCmdsUnion>) => Promise<void> {
+        return this.svc.handleWorkerMessage;
+    }
 }
 
 interface IMessageCallbacks extends IPyodideWorkerOnMessageCallbacks {
-	_getPyo?: (w: PyodideWorker) => PyodideInterface;
-	_castCaughtErrorToError?: (e: unknown) => Error;
+    _getPyo?: (w: PyodideWorker) => PyodideInterface;
+    _castCaughtErrorToError?: (e: unknown) => Error;
 }
 
 /**
  * Route handlers for messages received by worker.
  */
 class MessageCallbacks implements IMessageCallbacks {
-	static async handleRunCmd(data: IRunCmdWorkerCmd, w: PyodideWorker): Promise<void> {
-		const pyo = MessageCallbacks._getPyo(w);
-		const { code, id, console_id } = data.payload;
+    static async handleRunCmd(data: IRunCmdWorkerCmd, w: PyodideWorker): Promise<void> {
+        const pyo = MessageCallbacks._getPyo(w);
+        const { code, id, console_id } = data.payload;
 
-		w.client.runStart({ id, console_id });
+        w.client.runStart({ id, console_id });
 
-		try {
-			await pyo.loadPackagesFromImports(data.payload.code);
-			const returns = await pyo.runPythonAsync(code, {});
-			w.client.runComplete({ id, console_id, returns, status: 'ok' });
-		} catch (e) {
-			console.error('Error in python run: ', e);
-			const err = MessageCallbacks._castCaughtErrorToError(e);
+        try {
+            await pyo.loadPackagesFromImports(data.payload.code);
+            const returns = await pyo.runPythonAsync(code, {});
+            w.client.runComplete({ id, console_id, returns, status: 'ok' });
+        } catch (e) {
+            console.error('Error in python run: ', e);
+            const err = MessageCallbacks._castCaughtErrorToError(e);
 
-			w.client.runComplete({ id, console_id, err, status: 'err' });
-		}
-	}
+            w.client.runComplete({ id, console_id, err, status: 'err' });
+        }
+    }
 
-	static async handleRestart(data: IRestartWorkerCmd, worker: PyodideWorker): Promise<void> {
-		// TODO Implement restart handler.
-		console.error('Restart hadnler not implemented!', data);
-		console.log(worker);
-	}
+    static async handleRestart(data: IRestartWorkerCmd, worker: PyodideWorker): Promise<void> {
+        // TODO Implement restart handler.
+        console.error('Restart hadnler not implemented!', data);
+        console.log(worker);
+    }
 
-	/**
-	 * UTILITY FNs
-	 */
+    /**
+     * UTILITY FNs
+     */
 
-	static _getPyo(w: PyodideWorker): PyodideInterface {
-		const pyo = w.pyodide;
-		if (!pyo) {
-			throw new Error('asf');
-		}
-		return pyo;
-	}
+    static _getPyo(w: PyodideWorker): PyodideInterface {
+        const pyo = w.pyodide;
+        if (!pyo) {
+            throw new Error('asf');
+        }
+        return pyo;
+    }
 
-	static _castCaughtErrorToError(e: unknown): Error {
-		let err: Error;
-		if (typeof e === 'string') {
-			err = new Error(e);
-		} else if (e instanceof Error) {
-			err = e;
-		} else {
-			err = new Error(`(Unknown error type) ${e}`);
-		}
-		return err;
-	}
+    static _castCaughtErrorToError(e: unknown): Error {
+        let err: Error;
+        if (typeof e === 'string') {
+            err = new Error(e);
+        } else if (e instanceof Error) {
+            err = e;
+        } else {
+            err = new Error(`(Unknown error type) ${e}`);
+        }
+        return err;
+    }
 }
 
 /**

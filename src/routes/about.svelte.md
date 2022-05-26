@@ -38,23 +38,23 @@ _**Main idea:** Create a static site that supports collaborative python programm
 
 Implementation path w/ progress:
 
-- [x] Svelte project
-- [x] Run wasm from rust Package
-- [x] Run wasm within web worker
-- [x] Run python code using RustPython compiled to wasm.
-- [x] Add nice editor (monaco, codemirror, etc.)
-- [x] Add CRDT/collaboration with [yjs](https://docs.yjs.dev/)
-- [x] Add webrtc hookups for yjs/collaboration on _editor code_
-- [ ] Add CRDT validation of python editor output/state.
+-   [x] Svelte project
+-   [x] Run wasm from rust Package
+-   [x] Run wasm within web worker
+-   [x] Run python code using RustPython compiled to wasm.
+-   [x] Add nice editor (monaco, codemirror, etc.)
+-   [x] Add CRDT/collaboration with [yjs](https://docs.yjs.dev/)
+-   [x] Add webrtc hookups for yjs/collaboration on _editor code_
+-   [ ] Add CRDT validation of python editor output/state.
 
 # Acknowledgements
 
 This is really just a glue job. All of the magic here is due to these projects:
 
-- [Svelte/Svelte kit](kit.svelte.dev)
-- [RustPython](https://github.com/RustPython/RustPython)
-- [rustwasm/wasm-pack](https://github.com/rustwasm/wasm-pack)
-- [YJS](https://docs.yjs.dev)
-- [Monaco editor](https://microsoft.github.io/monaco-editor)
-- [Bulma](https://bulma.io)
-- [vite](https://vitejs.dev/)
+-   [Svelte/Svelte kit](kit.svelte.dev)
+-   [RustPython](https://github.com/RustPython/RustPython)
+-   [rustwasm/wasm-pack](https://github.com/rustwasm/wasm-pack)
+-   [YJS](https://docs.yjs.dev)
+-   [Monaco editor](https://microsoft.github.io/monaco-editor)
+-   [Bulma](https://bulma.io)
+-   [vite](https://vitejs.dev/)

@@ -1,7 +1,7 @@
 import {
-	extractFromCookies,
-	getCookies,
-	setCookiesFromSessionLocals
+    extractFromCookies,
+    getCookies,
+    setCookiesFromSessionLocals
 } from '$lib/util/sessionCookies';
 import type { Handle, GetSession } from '@sveltejs/kit';
 
@@ -17,18 +17,18 @@ import type { Handle, GetSession } from '@sveltejs/kit';
 // };
 
 export const handle: Handle = async ({ event, resolve }) => {
-	const cookies = getCookies(event.request.headers.get('cookie'));
+    const cookies = getCookies(event.request.headers.get('cookie'));
 
-	event.locals.user = extractFromCookies.user(cookies);
-	event.locals.persistent = extractFromCookies.persistent(cookies);
+    event.locals.user = extractFromCookies.user(cookies);
+    event.locals.persistent = extractFromCookies.persistent(cookies);
 
-	const response = await resolve(event);
+    const response = await resolve(event);
 
-	setCookiesFromSessionLocals(event.locals, (c) => response.headers.append('set-cookie', c));
-	return response;
+    setCookiesFromSessionLocals(event.locals, (c) => response.headers.append('set-cookie', c));
+    return response;
 };
 
 /** @type {import('@sveltejs/kit').GetSession} */
 export const getSession: GetSession = (e): App.Session => {
-	return e.locals;
+    return e.locals;
 };
