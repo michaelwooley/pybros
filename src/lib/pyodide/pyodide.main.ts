@@ -16,7 +16,6 @@ import {
 	type IWorkerErrorClientCmd
 } from './protocol';
 import PyodideWorker from './pyodide.worker?worker';
-// import PyodideWorkerUrl from './pyodide.worker?url';
 
 export interface IPyodideMainOnMessageCallbacks {
 	handleStartup?: (data: IStartupRunClientCmd, client: PyodideMain) => Promise<void>;
@@ -120,7 +119,7 @@ export class PyodideMain {
 		this.svc = new PyodideMainService(this, callbacks);
 
 		this.worker = new PyodideWorker();
-		// this.worker = new Worker(PyodideWorkerUrl, { type: 'module' });
+		// this.worker = new Worker(new URL('./pyodide.worker.ts', import.meta.url), { type: 'module' });
 		// this.worker = new Worker('/worker.js', { type: 'module' });
 
 		// NOTE MUST do this. Otherwise, "this" within `handleWorkerMessage` is that of the worker,

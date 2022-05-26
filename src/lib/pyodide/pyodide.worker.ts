@@ -1,17 +1,12 @@
-/* @vite-ignore */
 /// <reference no-default-lib="true"/>
 /// <reference lib="esnext" />
 /// <reference lib="webworker" />
+/// <reference types="vite/client" />
 
-/**
- * Web worker running pyodide python repl.
- */
-
-// TODO #33 Add interrupt signals https://pyodide.org/en/stable/usage/keyboard-interrupts.html#setting-up-interrupts
-// TODO #36 #35 Handle stdin/`input()` in pyodide worker
-
+// // TODO #33 Add interrupt signals https://pyodide.org/en/stable/usage/keyboard-interrupts.html#setting-up-interrupts
+// // TODO #36 #35 Handle stdin/`input()` in pyodide worker
 import { PYODIDE_INDEX_URL } from '$lib/constants';
-import * as pyodideModule from 'pyodide';
+import type { loadPyodide as TLoadPyodideFunction } from 'pyodide/pyodide.d';
 import {
 	ClientCmdEnum,
 	WorkerCmdEnum,
@@ -26,12 +21,33 @@ import {
 	type IWorkerErrorClientCmdPayload
 } from '$lib/pyodide/protocol';
 
-type PyodideInterface = GetInsidePromise<ReturnType<typeof pyodideModule.loadPyodide>>;
+type PyodideInterface = GetInsidePromise<ReturnType<typeof TLoadPyodideFunction>>;
 
 declare global {
 	// eslint-disable-next-line no-var
 	var pyodideWorker: PyodideWorker;
+	// eslint-disable-next-line no-var
+	var loadPyodide: typeof TLoadPyodideFunction | undefined;
 }
+
+const loadLoadPyodide = async (): Promise<typeof TLoadPyodideFunction> => {
+	let lp: typeof TLoadPyodideFunction;
+
+	// XXX In dev mode, we have to use..eval.
+	if (import.meta.env.DEV) {
+		const moduleString = await (await import('pyodide/pyodide.js?raw')).default;
+		eval(moduleString);
+
+		if (globalThis['loadPyodide'] == undefined) {
+			throw new Error('sf');
+		}
+		lp = globalThis['loadPyodide']; // as unknown as typeof TLoadPyodideFunction;
+	} else {
+		console.log('Prod mode: Loading pyodide correctly...');
+		lp = await (await import('pyodide/pyodide.js')).loadPyodide;
+	}
+	return lp;
+};
 
 interface IPyodideWorkerOnMessageCallbacks {
 	handleRunCmd?: (data: IRunCmdWorkerCmd, worker: PyodideWorker) => Promise<void>;
@@ -132,7 +148,8 @@ class PyodideWorker {
 	}
 
 	private async loadPyodideAndPackages(): Promise<void> {
-		this.pyodide = await pyodideModule.loadPyodide({
+		const loadPyodide = await loadLoadPyodide();
+		this.pyodide = await loadPyodide({
 			indexURL: this.indexURL,
 			stdout: (msg) => this.client.output({ msg, stream: 'stdout' }),
 			stderr: (msg) => this.client.output({ msg, stream: 'stderr' })
@@ -218,15 +235,7 @@ class MessageCallbacks implements IMessageCallbacks {
 
 self.pyodideWorker = new PyodideWorker(self.postMessage, PYODIDE_INDEX_URL, MessageCallbacks);
 self.pyodideWorker.init();
-// // hack to avoid overlay.ts's dom assumptions
-// self.HTMLElement = function () {
-// 	return {};
-// };
-// self.customElements = {
-// 	get() {
-// 		return [];
-// 	}
-// };
+
 self.onmessage = async (e) => self.pyodideWorker.handleWorkerMessage(e);
 
 // TODO Set onmessageerror event handler in worker.
